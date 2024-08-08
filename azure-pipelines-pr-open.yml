@@ -13,8 +13,8 @@ resources:
   - webhook: WebhookPRtestUnlabeled
     connection: WebhookPRtestUnlabeledConnection
     filters:
-    - path: "pull_request.labels[?(@.name === 'Create Environment B')].name"
-      value: "Create Environment B"
+    - path: "pull_request.labels[?(@.name === 'Create EnvironmentB')].name"
+      value: "Create EnvironmentB"
     - path: "action"
       value: "labeled"
       
@@ -84,7 +84,7 @@ stages:
 
           for label in "$label0" "$label1" "$label2" "$label3" "$label4" "$label5"; do
             echo "Debug: Processing label: $label"
-            if [[ "$label" == "Create Environment B" ]]; then
+            if [[ "$label" == "Create EnvironmentB" ]]; then
               create_env_found=true
               break
             fi
