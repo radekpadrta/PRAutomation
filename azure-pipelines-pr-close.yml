@@ -113,7 +113,7 @@ stages:
       condition: >
         or(
           eq(variables['createEnvironmentFound'], 'false'),
-          eq(variables['createEnvironmentBFound'], 'false'))
+          eq(variables['createEnvironmentBFound'], 'false')
         )
       inputs:
         gitHubConnection: 'github-nextjsdummytest'
@@ -196,7 +196,7 @@ stages:
       condition: >
         and(
           eq(variables['createEnvironmentFound'], 'false'),
-          eq(variables['createEnvironmentBFound'], 'false'))
+          eq(variables['createEnvironmentBFound'], 'false')
         )
       inputs:
         azureSubscription: 'radek-padrta-vs-msp'
