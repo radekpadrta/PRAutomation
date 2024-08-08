@@ -184,6 +184,7 @@ stages:
         
           echo "Restarting Web App for Variant 1"
           az webapp restart --name $(AZURE_WEBAPP_NAME) --resource-group $(AZURE_RESOURCE_GROUP) || { echo "Failed to restart Web App"; exit 1; }          
+          
           echo "All steps completed successfully for Variant 1"
         
           # Print out important information for debugging
