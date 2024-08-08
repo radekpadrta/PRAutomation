@@ -139,7 +139,7 @@ stages:
           az acr login --name $(ACR_NAME) || { echo "Failed to login to ACR"; exit 1; }
           
           echo "Building and pushing Docker image"
-          az acr build --registry $(ACR_NAME) --image myapp:nextjsPOC . || { echo "Failed to build and push image"; exit 1; }
+          az acr build --registry $(ACR_NAME) --image myapp:nextjsPOC-variant1 --build-arg VARIANT=. . || { echo "Failed to build and push image"; exit 1; }
           
           echo "Creating App Service Plan (if it doesn't exist)"
           az appservice plan create --name $(APP_SERVICE_PLAN_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --is-linux --sku B1 || { echo "Failed to create App Service Plan"; exit 1; }
@@ -149,7 +149,7 @@ stages:
             --resource-group $(AZURE_RESOURCE_GROUP) \
             --plan $(APP_SERVICE_PLAN_NAME) \
             --name $(AZURE_WEBAPP_NAME) \
-            --deployment-container-image-name $(ACR_NAME).azurecr.io/myapp:nextjsPOC \
+            --deployment-container-image-name $(ACR_NAME).azurecr.io/myapp:nextjsPOC-variant1 \
             || { echo "Failed to create Web App"; exit 1; }
 
           echo "Assigning system-assigned managed identity to Web App"
@@ -165,7 +165,7 @@ stages:
           az webapp config container set \
             --name $(AZURE_WEBAPP_NAME) \
             --resource-group $(AZURE_RESOURCE_GROUP) \
-            --docker-custom-image-name $(ACR_NAME).azurecr.io/myapp:nextjsPOC \
+            --docker-custom-image-name $(ACR_NAME).azurecr.io/myapp:nextjsPOC-variant1 \
             --docker-registry-server-url https://$(ACR_NAME).azurecr.io
           
           echo "Updating Web App to use managed identity for ACR"
@@ -296,7 +296,7 @@ stages:
           az acr login --name $(ACR_NAME) || { echo "Failed to login to ACR"; exit 1; }
           
           echo "Building and pushing Docker image"
-          az acr build --registry $(ACR_NAME) --image myapp:nextjsPOC . || { echo "Failed to build and push image"; exit 1; }
+          az acr build --registry $(ACR_NAME) --image myapp:nextjsPOC-variant1 --build-arg VARIANT=. . || { echo "Failed to build and push image"; exit 1; }
           
           echo "Creating App Service Plan (if it doesn't exist)"
           az appservice plan create --name $(APP_SERVICE_PLAN_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --is-linux --sku B1 || { echo "Failed to create App Service Plan"; exit 1; }
@@ -306,7 +306,7 @@ stages:
             --resource-group $(AZURE_RESOURCE_GROUP) \
             --plan $(APP_SERVICE_PLAN_NAME) \
             --name $(AZURE_WEBAPPB_NAME) \
-            --deployment-container-image-name $(ACR_NAME).azurecr.io/myapp:nextjsPOC \
+            --deployment-container-image-name $(ACR_NAME).azurecr.io/myapp:nextjsPOC-variant1 \
             || { echo "Failed to create Web App"; exit 1; }
 
           echo "Assigning system-assigned managed identity to Web App"
@@ -322,7 +322,7 @@ stages:
           az webapp config container set \
             --name $(AZURE_WEBAPPB_NAME) \
             --resource-group $(AZURE_RESOURCE_GROUP) \
-            --docker-custom-image-name $(ACR_NAME).azurecr.io/myapp:nextjsPOC \
+            --docker-custom-image-name $(ACR_NAME).azurecr.io/myapp:nextjsPOC-variant1 \
             --docker-registry-server-url https://$(ACR_NAME).azurecr.io
           
           echo "Updating Web App to use managed identity for ACR"
