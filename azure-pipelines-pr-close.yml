@@ -23,14 +23,14 @@ variables:
     value: 'testnextjs'    
   - ${{ if eq(parameters.WebhookPRtest.action, 'closed') }}:
     - name: AZURE_WEBAPP_NAME
-      value: 'aapp-${{parameters.WebhookPRtest.pull_request.id}}'
+      value: '${{parameters.WebhookPRtest.pull_request.id}}-variant1'
     - name: AZURE_WEBAPPB_NAME
-      value: 'bapp-${{parameters.WebhookPRtest.pull_request.id}}'
+      value: '${{parameters.WebhookPRtest.pull_request.id}}-variant2'
   - ${{ if eq(parameters.WebhookPRtestUnlabeled.action, 'unlabeled') }}:
     - name: AZURE_WEBAPP_NAME
-      value: 'aapp-${{parameters.WebhookPRtestUnlabeled.pull_request.id}}'
+      value: '${{parameters.WebhookPRtestUnlabeled.pull_request.id}}-variant1'
     - name: AZURE_WEBAPPB_NAME
-      value: 'bapp-${{parameters.WebhookPRtestUnlabeled.pull_request.id}}'
+      value: '${{parameters.WebhookPRtestUnlabeled.pull_request.id}}-variant2'
   
 
 stages:
@@ -208,7 +208,8 @@ stages:
            echo "Checking if Azure Container Registry exists"
           if az acr show --name $(ACR_NAME) --resource-group $(AZURE_RESOURCE_GROUP) &>/dev/null; then
             echo "Removing specific tag from ACR repository"
-            az acr repository delete --name $(ACR_NAME) --image myapp:nextjsPOC --yes || { echo "Failed to delete tag from ACR repository"; exit 1; }
+            az acr repository delete --name $(ACR_NAME) --image myapp:nextjsPOC-variant1 --yes || { echo "Failed to delete tag from ACR repository"; exit 1; }
+            az acr repository delete --name $(ACR_NAME) --image myapp:nextjsPOC-variant2 --yes || { echo "Failed to delete tag from ACR repository"; exit 1; }
             echo "Tag removed successfully from ACR repository"
           else
             echo "Azure Container Registry does not exist, skipping tag removal"
