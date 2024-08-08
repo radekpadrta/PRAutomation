@@ -173,13 +173,13 @@ stages:
         inlineScript: |
           set -e  # Exit immediately if a command exits with a non-zero status
          
-          echo "Checking if the web app exists: $(AZURE_WEBAPP_NAME)"
-          if az webapp show --name $(AZURE_WEBAPP_NAME) --resource-group $(AZURE_RESOURCE_GROUP) &>/dev/null; then
-            echo "Deleting Azure Web App: $(AZURE_WEBAPP_NAME)"
-            az webapp delete --name $(AZURE_WEBAPP_NAME) --resource-group $(AZURE_RESOURCE_GROUP) || { echo "Failed to delete Web App $(AZURE_WEBAPP_NAME)"; exit 1; }
-            echo "Web App $(AZURE_WEBAPP_NAME) deleted successfully"
+          echo "Checking if the web app exists: $(AZURE_WEBAPPB_NAME)"
+          if az webapp show --name $(AZURE_WEBAPPB_NAME) --resource-group $(AZURE_RESOURCE_GROUP) &>/dev/null; then
+            echo "Deleting Azure Web App: $(AZURE_WEBAPPB_NAME)"
+            az webapp delete --name $(AZURE_WEBAPPB_NAME) --resource-group $(AZURE_RESOURCE_GROUP) || { echo "Failed to delete Web App $(AZURE_WEBAPPB_NAME)"; exit 1; }
+            echo "Web App $(AZURE_WEBAPPB_NAME) deleted successfully"
           else
-            echo "Web App $(AZURE_WEBAPP_NAME) not found in the resource group $(AZURE_RESOURCE_GROUP)"
+            echo "Web App $(AZURE_WEBAPPB_NAME) not found in the resource group $(AZURE_RESOURCE_GROUP)"
           fi
 
           echo "All steps completed successfully"
