@@ -13,7 +13,7 @@ resources:
   - webhook: WebhookPRtest
     connection: WebhookPRtestConnection
     filters:
-    - path: "pull_request.labels[?(@.name === 'Create Environment B')].name"
+    - path: "pull_request.labels[?(@.name == 'Create Environment B')].name"
       value: "Create Environment B"
     - path: "action"
       value: "labeled"
