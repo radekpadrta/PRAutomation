@@ -120,7 +120,7 @@ stages:
         repositoryName: '$(Build.Repository.Name)'
         id: '${{parameters.WebhookPRtest.number}}'
         comment: |
-          🚀 **Environment Creation Started for variant1**
+          🚀 **Environment Creation Started for VARIANT1**
 
           - The environment creation process has been initiated.
           - This operation typically takes around 5 minutes to complete.
@@ -250,7 +250,7 @@ stages:
         repositoryName: '$(Build.Repository.Name)'
         id: '${{parameters.WebhookPRtest.number}}'
         comment: |
-          ✅ **Web app is ready!** 
+          ✅ **Web app VARIANT1 is ready!** 
 
           You can access the application at https://$(AZURE_WEBAPP_NAME).azurewebsites.net'
 
@@ -280,7 +280,7 @@ stages:
         repositoryName: '$(Build.Repository.Name)'
         id: '${{parameters.WebhookPRtestUnlabeled.number}}'
         comment: |
-          🚀 **Environment Creation Started**
+          🚀 **Environment Creation Started for VARIANT2**
 
           - The environment creation process has been initiated.
           - This operation typically takes around 5 minutes to complete.
@@ -365,7 +365,7 @@ stages:
         repositoryName: '$(Build.Repository.Name)'
         id: '${{parameters.WebhookPRtestUnlabeled.number}}'
         comment: |
-          ☁️ **Web app creation successful in Azure Cloud!**
+          ☁️ **Web app VARIANT2 creation successful in Azure Cloud!**
 
           The app is being deployed and will be ready soon.
 
@@ -413,7 +413,7 @@ stages:
         repositoryName: '$(Build.Repository.Name)'
         id: '${{parameters.WebhookPRtestUnlabeled.number}}'
         comment: |
-          ✅ **Web app is ready!** 
+          ✅ **Web app VARIANT2 is ready!** 
 
           You can access the application at https://$(AZURE_WEBAPPB_NAME).azurewebsites.net'
 
