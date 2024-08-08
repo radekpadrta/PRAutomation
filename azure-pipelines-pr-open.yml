@@ -1,0 +1,383 @@
+trigger: none
+pr: none
+
+resources:
+  webhooks:
+  - webhook: WebhookPRtest         
+    connection: WebhookPRtestConnection
+    filters:
+    - path: "pull_request.labels[?(@.name == 'Create Environment')].name"
+      value: "Create Environment"
+    - path: "action"
+      value: "labeled"
+  - webhook: WebhookPRtestUnlabeled
+    connection: WebhookPRtestUnlabeledConnection
+    filters:
+    - path: "pull_request.labels[?(@.name == 'Create Environment B')].name"
+      value: "Create Environment B"
+    - path: "action"
+      value: "labeled"
+      
+variables:
+  - name: AZURE_WEBAPP_NAME
+    value: 'aapp-${{parameters.WebhookPRtest.pull_request.id}}'
+  - name: AZURE_WEBAPPB_NAME
+    value: 'bapp-${{parameters.WebhookPRtestUnlabeled.pull_request.id}}'
+  - name: AZURE_RESOURCE_GROUP
+    value: 'POCNextJS'
+  - name: ACR_NAME
+    value: 'testnextjs'
+  - name: APP_SERVICE_PLAN_NAME
+    value: 'testnextJSdummy'
+  - name: LOCATION
+    value: 'eastus'
+  - name: NEXT_PUBLIC_MESSAGE
+    value: 'This is ENV.Variables'
+    
+stages:
+- stage: BuildAndDeploy
+  jobs:
+  - job: DeployPREnvironment
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: Bash@3
+      displayName: 'Check for Create Environment label'
+      inputs:
+        targetType: 'inline'
+        script: |
+          create_env_found=false
+      
+          label0="${{parameters.WebhookPRtest.pull_request.labels[0].name}}"
+          label1="${{parameters.WebhookPRtest.pull_request.labels[1].name}}"
+          label2="${{parameters.WebhookPRtest.pull_request.labels[2].name}}"
+          label3="${{parameters.WebhookPRtest.pull_request.labels[3].name}}"
+          label4="${{parameters.WebhookPRtest.pull_request.labels[4].name}}"
+          label5="${{parameters.WebhookPRtest.pull_request.labels[5].name}}"
+
+          for label in "$label0" "$label1" "$label2" "$label3" "$label4" "$label5"; do
+            echo "Debug: Processing label: $label"
+            if [[ "$label" == "Create Environment" ]]; then
+              create_env_found=true
+              break
+            fi
+          done
+
+          if $create_env_found; then
+            echo "##vso[task.setvariable variable=createEnvironmentFound]true"
+          else
+            echo "##vso[task.setvariable variable=createEnvironmentFound]false"
+          fi
+    - task: Bash@3
+      displayName: 'Check for Create Environment B label'
+      inputs:
+        targetType: 'inline'
+        script: |
+          create_env_found=false
+      
+          label0="${{parameters.WebhookPRtestUnlabeled.pull_request.labels[0].name}}"
+          label1="${{parameters.WebhookPRtestUnlabeled.pull_request.labels[1].name}}"
+          label2="${{parameters.WebhookPRtestUnlabeled.pull_request.labels[2].name}}"
+          label3="${{parameters.WebhookPRtestUnlabeled.pull_request.labels[3].name}}"
+          label4="${{parameters.WebhookPRtestUnlabeled.pull_request.labels[4].name}}"
+          label5="${{parameters.WebhookPRtestUnlabeled.pull_request.labels[5].name}}"
+
+          for label in "$label0" "$label1" "$label2" "$label3" "$label4" "$label5"; do
+            echo "Debug: Processing label: $label"
+            if [[ "$label" == "Create Environment B" ]]; then
+              create_env_found=true
+              break
+            fi
+          done
+
+          if $create_env_found; then
+            echo "##vso[task.setvariable variable=createEnvironmentBFound]true"
+          else
+            echo "##vso[task.setvariable variable=createEnvironmentBFound]false"
+          fi
+
+    - task: AzureCLI@2
+      condition: eq(variables['createEnvironmentFound'], 'true')
+      inputs:
+        azureSubscription: 'radek-padrta-vs-msp'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          if az webapp show --name $(AZURE_WEBAPP_NAME) --resource-group $(AZURE_RESOURCE_GROUP) &>/dev/null; then
+            echo "Web app $(AZURE_WEBAPP_NAME) exists."
+            echo "##vso[task.setvariable variable=webAppExists]true"
+          else
+            echo "Web app $(AZURE_WEBAPP_NAME) does not exist."
+            echo "##vso[task.setvariable variable=webAppExists]false"
+          fi
+
+    - task: GitHubComment@0
+      condition: eq(variables['webAppExists'], 'false')
+      inputs:
+        gitHubConnection: 'github-nextjsdummytest'
+        repositoryName: '$(Build.Repository.Name)'
+        id: '${{parameters.WebhookPRtest.number}}'
+        comment: |
+          🚀 **Environment Creation Started**
+
+          - The environment creation process has been initiated.
+          - This operation typically takes around 5 minutes to complete.
+          - A follow-up comment will be posted here when the process is complete.
+
+    - task: AzureCLI@2
+      displayName: 'A APP'
+      condition: eq(variables['webAppExists'], 'false')
+      inputs:
+        azureSubscription: 'radek-padrta-vs-msp'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          set -e  # Exit immediately if a command exits with a non-zero status
+               
+          
+          echo "Logging into Azure Container Registry"
+          az acr login --name $(ACR_NAME) || { echo "Failed to login to ACR"; exit 1; }
+          
+          echo "Building and pushing Docker image"
+          az acr build --registry $(ACR_NAME) --image myapp:nextjsPOC . || { echo "Failed to build and push image"; exit 1; }
+          
+          echo "Creating App Service Plan (if it doesn't exist)"
+          az appservice plan create --name $(APP_SERVICE_PLAN_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --is-linux --sku B1 || { echo "Failed to create App Service Plan"; exit 1; }
+          
+          echo "Creating Azure Web App for Containers"
+          az webapp create \
+            --resource-group $(AZURE_RESOURCE_GROUP) \
+            --plan $(APP_SERVICE_PLAN_NAME) \
+            --name $(AZURE_WEBAPP_NAME) \
+            --deployment-container-image-name $(ACR_NAME).azurecr.io/myapp:nextjsPOC \
+            || { echo "Failed to create Web App"; exit 1; }
+
+          echo "Assigning system-assigned managed identity to Web App"
+          az webapp identity assign --name $(AZURE_WEBAPP_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
+          
+          echo "Getting principal ID of Web App's managed identity"
+          WEBAPP_PRINCIPAL_ID=$(az webapp identity show --name $(AZURE_WEBAPP_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --query principalId --output tsv)
+          
+          echo "Assigning AcrPull role to Web App for ACR"
+          az role assignment create --assignee-object-id $WEBAPP_PRINCIPAL_ID --assignee-principal-type ServicePrincipal --scope /subscriptions/$(az account show --query id -o tsv)/resourceGroups/$(AZURE_RESOURCE_GROUP)/providers/Microsoft.ContainerRegistry/registries/$(ACR_NAME) --role AcrPull
+          
+          echo "Configuring Web App container settings"
+          az webapp config container set \
+            --name $(AZURE_WEBAPP_NAME) \
+            --resource-group $(AZURE_RESOURCE_GROUP) \
+            --docker-custom-image-name $(ACR_NAME).azurecr.io/myapp:nextjsPOC \
+            --docker-registry-server-url https://$(ACR_NAME).azurecr.io
+          
+          echo "Updating Web App to use managed identity for ACR"
+          az webapp config set \
+            --name $(AZURE_WEBAPP_NAME) \
+            --resource-group $(AZURE_RESOURCE_GROUP) \
+            --generic-configurations '{"acrUseManagedIdentityCreds": true}'
+
+          echo "Setting environment variables"
+          az webapp config appsettings set \
+            --resource-group $(AZURE_RESOURCE_GROUP) \
+            --name $(AZURE_WEBAPP_NAME) \
+            --settings NEXT_PUBLIC_MESSAGE="$(NEXT_PUBLIC_MESSAGE)" \
+            || { echo "Failed to set environment variables"; exit 1; }
+
+          echo "Restarting Web App"
+          az webapp restart --name $(AZURE_WEBAPP_NAME) --resource-group $(AZURE_RESOURCE_GROUP) || { echo "Failed to restart Web App"; exit 1; }          
+          echo "All steps completed successfully"
+
+          # Print out important information for debugging
+          echo "ACR Name: $(ACR_NAME)"
+          echo "Resource Group: $(AZURE_RESOURCE_GROUP)"
+          echo "Web App Name: $(AZURE_WEBAPP_NAME)"
+          
+          # List resources in the resource group
+          echo "Resources in the resource group:"
+          az resource list --resource-group $(AZURE_RESOURCE_GROUP) --output table
+
+    - task: GitHubComment@0
+      condition: eq(variables['webAppExists'], 'false')
+      inputs:
+        gitHubConnection: 'github-nextjsdummytest'
+        repositoryName: '$(Build.Repository.Name)'
+        id: '${{parameters.WebhookPRtest.number}}'
+        comment: |
+          ☁️ **Web app creation successful in Azure Cloud!**
+
+          The app is being deployed and will be ready soon.
+
+          - It may take a few more minutes for the app to be fully deployed and accessible.
+          - You can check the status at: https://$(AZURE_WEBAPP_NAME).azurewebsites.net
+          - Alternatively, wait for the final deployment confirmation comment.
+
+    - task: AzureCLI@2
+      condition: eq(variables['webAppExists'], 'false')
+      displayName: 'Check Web App Status'
+      inputs:
+        azureSubscription: 'radek-padrta-vs-msp'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          echo "Checking Web App status and accessibility..."
+          max_attempts=60
+          attempt=1
+          while [ $attempt -le $max_attempts ]
+          do
+            status=$(az webapp show --name $(AZURE_WEBAPP_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --query state -o tsv)
+            if [ "$status" = "Running" ]; then
+              echo "Web App is in Running state. Checking if it's accessible..."
+              if curl -s -o /dev/null -w "%{http_code}" https://$(AZURE_WEBAPP_NAME).azurewebsites.net | grep -q "200\|301\|302"; then
+                echo "Web App is accessible and returning a successful status code!"
+                exit 0
+              else
+                echo "Attempt $attempt: Web App is running but not yet accessible. Waiting..."
+              fi
+            else
+              echo "Attempt $attempt: Web App is not ready yet. Current status: $status"
+            fi
+            sleep 10
+            attempt=$((attempt + 1))
+          done
+          echo "Web App did not become fully accessible within the expected time."
+          exit 1
+    
+    - task: GitHubComment@0
+      condition: eq(variables['webAppExists'], 'false')
+      displayName: 'Post Final Status to GitHub PR'
+      inputs:
+        gitHubConnection: 'github-nextjsdummytest'
+        repositoryName: '$(Build.Repository.Name)'
+        id: '${{parameters.WebhookPRtest.number}}'
+        comment: |
+          ✅ **Web app is ready!** 
+
+          You can access the application at https://$(AZURE_WEBAPP_NAME).azurewebsites.net'
+
+          Thank you for your patience! 
+
+    - task: AzureCLI@2
+      condition: eq(variables['createEnvironmentBFound'], 'true')
+      inputs:
+        azureSubscription: 'radek-padrta-vs-msp'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          if az webapp show --name $(AZURE_WEBAPPB_NAME) --resource-group $(AZURE_RESOURCE_GROUP) &>/dev/null; then
+            echo "Web app $(AZURE_WEBAPPB_NAME) exists."
+            echo "##vso[task.setvariable variable=webAppBExists]true"
+          else
+            echo "Web app $(AZURE_WEBAPPB_NAME) does not exist."
+            echo "##vso[task.setvariable variable=webAppBExists]false"
+          fi
+
+    - task: GitHubComment@0
+      condition: eq(variables['webAppBExists'], 'false')
+      inputs:
+        gitHubConnection: 'github-nextjsdummytest'
+        repositoryName: '$(Build.Repository.Name)'
+        id: '${{parameters.WebhookPRtestUnlabeled.number}}'
+        comment: |
+          🚀 **Environment Creation Started**
+
+          - The environment creation process has been initiated.
+          - This operation typically takes around 5 minutes to complete.
+          - A follow-up comment will be posted here when the process is complete.
+
+    - task: AzureCLI@2
+      displayName: 'B APP'
+      condition: eq(variables['webAppBExists'], 'false')
+      inputs:
+        azureSubscription: 'radek-padrta-vs-msp'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          set -e  # Exit immediately if a command exits with a non-zero status
+                
+          echo "Logging into Azure Container Registry"
+          az acr login --name $(ACR_NAME) || { echo "Failed to login to ACR"; exit 1; }
+          
+          echo "Building and pushing Docker image"
+          az acr build --registry $(ACR_NAME) --image myapp:nextjsPOC . || { echo "Failed to build and push image"; exit 1; }
+          
+          echo "Creating App Service Plan (if it doesn't exist)"
+          az appservice plan create --name $(APP_SERVICE_PLAN_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --is-linux --sku B1 || { echo "Failed to create App Service Plan"; exit 1; }
+          
+          echo "Creating Azure Web App for Containers"
+          az webapp create \
+            --resource-group $(AZURE_RESOURCE_GROUP) \
+            --plan $(APP_SERVICE_PLAN_NAME) \
+            --name $(AZURE_WEBAPPB_NAME) \
+            --deployment-container-image-name $(ACR_NAME).azurecr.io/myapp:nextjsPOC \
+            || { echo "Failed to create Web App"; exit 1; }
+
+          echo "Assigning system-assigned managed identity to Web App"
+          az webapp identity assign --name $(AZURE_WEBAPPB_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
+          
+          echo "Getting principal ID of Web App's managed identity"
+          WEBAPP_PRINCIPAL_ID=$(az webapp identity show --name $(AZURE_WEBAPPB_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --query principalId --output tsv)
+          
+          echo "Assigning AcrPull role to Web App for ACR"
+          az role assignment create --assignee-object-id $WEBAPP_PRINCIPAL_ID --assignee-principal-type ServicePrincipal --scope /subscriptions/$(az account show --query id -o tsv)/resourceGroups/$(AZURE_RESOURCE_GROUP)/providers/Microsoft.ContainerRegistry/registries/$(ACR_NAME) --role AcrPull
+          
+          echo "Configuring Web App container settings"
+          az webapp config container set \
+            --name $(AZURE_WEBAPPB_NAME) \
+            --resource-group $(AZURE_RESOURCE_GROUP) \
+            --docker-custom-image-name $(ACR_NAME).azurecr.io/myapp:nextjsPOC \
+            --docker-registry-server-url https://$(ACR_NAME).azurecr.io
+          
+          echo "Updating Web App to use managed identity for ACR"
+          az webapp config set \
+            --name $(AZURE_WEBAPPB_NAME) \
+            --resource-group $(AZURE_RESOURCE_GROUP) \
+            --generic-configurations '{"acrUseManagedIdentityCreds": true}'
+
+          echo "Setting environment variables"
+          az webapp config appsettings set \
+            --resource-group $(AZURE_RESOURCE_GROUP) \
+            --name $(AZURE_WEBAPPB_NAME) \
+            --settings NEXT_PUBLIC_MESSAGE="$(NEXT_PUBLIC_MESSAGE)" \
+            || { echo "Failed to set environment variables"; exit 1; }
+
+          echo "Restarting Web App"
+          az webapp restart --name $(AZURE_WEBAPPB_NAME) --resource-group $(AZURE_RESOURCE_GROUP) || { echo "Failed to restart Web App"; exit 1; }          
+          echo "All steps completed successfully"
+
+          # Print out important information for debugging
+          echo "ACR Name: $(ACR_NAME)"
+          echo "Resource Group: $(AZURE_RESOURCE_GROUP)"
+          echo "Web App Name: $(AZURE_WEBAPPB_NAME)"
+          
+          # List resources in the resource group
+          echo "Resources in the resource group:"
+          az resource list --resource-group $(AZURE_RESOURCE_GROUP) --output table
+
+    - task: GitHubComment@0
+      condition: eq(variables['webAppBExists'], 'false')
+      inputs:
+        gitHubConnection: 'github-nextjsdummytest'
+        repositoryName: '$(Build.Repository.Name)'
+        id: '${{parameters.WebhookPRtestUnlabeled.number}}'
+        comment: |
+          ☁️ **Web app creation successful in Azure Cloud!**
+
+          The app is being deployed and will be ready soon.
+
+          - It may take a few more minutes for the app to be fully deployed and accessible.
+          - You can check the status at: https://$(AZURE_WEBAPPB_NAME).azurewebsites.net
+          - Alternatively, wait for the final deployment confirmation comment.
+
+    
+    - task: GitHubComment@0
+      condition: eq(variables['webAppBExists'], 'false')
+      displayName: 'Post Final Status to GitHub PR'
+      inputs:
+        gitHubConnection: 'github-nextjsdummytest'
+        repositoryName: '$(Build.Repository.Name)'
+        id: '${{parameters.WebhookPRtestUnlabeled.number}}'
+        comment: |
+          ✅ **Web app is ready!** 
+
+          You can access the application at https://$(AZURE_WEBAPPB_NAME).azurewebsites.net'
+
+          Thank you for your patience!     
+              
