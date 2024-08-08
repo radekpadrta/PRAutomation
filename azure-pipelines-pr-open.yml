@@ -10,8 +10,8 @@ resources:
       value: "Create Environment"
     - path: "action"
       value: "labeled"
-  - webhook: WebhookPRtest
-    connection: WebhookPRtestConnection
+  - webhook: WebhookPRtestUnlabeled
+    connection: WebhookPRtestConnectionUnlabeled
     filters:
     - path: "pull_request.labels[?(@.name == 'Create Environment B')].name"
       value: "Create Environment B"
