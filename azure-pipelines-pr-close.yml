@@ -28,7 +28,7 @@ variables:
       value: 'bapp-${{parameters.WebhookPRtest.pull_request.id}}'
   - ${{ if eq(parameters.WebhookPRtestUnlabeled.action, 'unlabeled') }}:
     - name: AZURE_WEBAPP_NAME
-      value: 'myapp-${{parameters.WebhookPRtestUnlabeled.pull_request.id}}'
+      value: 'aapp-${{parameters.WebhookPRtestUnlabeled.pull_request.id}}'
     - name: AZURE_WEBAPPB_NAME
       value: 'bapp-${{parameters.WebhookPRtestUnlabeled.pull_request.id}}'
   
