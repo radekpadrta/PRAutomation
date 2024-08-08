@@ -6,15 +6,15 @@ resources:
   - webhook: WebhookPRtest         
     connection: WebhookPRtestConnection
     filters:
-    - path: "pull_request.labels[?(@.name == 'Create Environment')].name"
-      value: "Create Environment"
+    - path: "pull_request.labels[?(@.name == 'Create Variant1')].name"
+      value: "Create Variant1"
     - path: "action"
       value: "labeled"
   - webhook: WebhookPRtestUnlabeled
     connection: WebhookPRtestUnlabeledConnection
     filters:
-    - path: "pull_request.labels[?(@.name == 'Create Environment B')].name"
-      value: "Create Environment B"
+    - path: "pull_request.labels[?(@.name == 'Create Variant2')].name"
+      value: "Create Variant2"
     - path: "action"
       value: "labeled"
       
@@ -42,7 +42,7 @@ stages:
       vmImage: 'ubuntu-latest'
     steps:
     - task: Bash@3
-      displayName: 'Check for Create Environment label'
+      displayName: 'Check for Create Variant1 label'
       inputs:
         targetType: 'inline'
         script: |
@@ -57,7 +57,7 @@ stages:
 
           for label in "$label0" "$label1" "$label2" "$label3" "$label4" "$label5"; do
             echo "Webhook1: Processing label: $label"
-            if [[ "$label" == "Create Environment" ]]; then
+            if [[ "$label" == "Create Variant1" ]]; then
               create_env_found=true
               break
             fi
@@ -69,7 +69,7 @@ stages:
             echo "##vso[task.setvariable variable=createEnvironmentFound]false"
           fi
     - task: Bash@3
-      displayName: 'Check for Create Environment B label'
+      displayName: 'Check for Create Variant 2 label'
       inputs:
         targetType: 'inline'
         script: |
@@ -84,7 +84,7 @@ stages:
 
           for label in "$label0" "$label1" "$label2" "$label3" "$label4" "$label5"; do
             echo "Webhook2: Processing label: $label"
-            if [[ "$label" == "Create Environment B" ]]; then
+            if [[ "$label" == "Create Variant2" ]]; then
               create_env_found=true
               break
             fi
@@ -120,7 +120,7 @@ stages:
         repositoryName: '$(Build.Repository.Name)'
         id: '${{parameters.WebhookPRtest.number}}'
         comment: |
-          🚀 **Environment Creation Started for VARIANT1**
+          🚀 **Creation Started for VARIANT1**
 
           - The environment creation process has been initiated.
           - This operation typically takes around 5 minutes to complete.
@@ -280,7 +280,7 @@ stages:
         repositoryName: '$(Build.Repository.Name)'
         id: '${{parameters.WebhookPRtestUnlabeled.number}}'
         comment: |
-          🚀 **Environment Creation Started for VARIANT2**
+          🚀 **Creation Started for VARIANT2**
 
           - The environment creation process has been initiated.
           - This operation typically takes around 5 minutes to complete.

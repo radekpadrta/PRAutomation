@@ -41,7 +41,7 @@ stages:
       vmImage: 'ubuntu-latest'
     steps:
     - task: Bash@3
-      displayName: 'Check for Create Environment label'
+      displayName: 'Check for Create Variant1 label'
       inputs:
         targetType: 'inline'
         script: |
@@ -56,7 +56,7 @@ stages:
 
           for label in "$label0" "$label1" "$label2" "$label3" "$label4" "$label5"; do
             echo "Debug: Processing label: $label"
-            if [[ "$label" == "Create Environment" ]]; then
+            if [[ "$label" == "Create Variant1" ]]; then
               create_env_found=true
               break
             fi
@@ -69,7 +69,7 @@ stages:
           fi
     
     - task: Bash@3
-      displayName: 'Check for Create Environment B label'
+      displayName: 'Check for Create Variant2 label'
       inputs:
         targetType: 'inline'
         script: |
@@ -84,7 +84,7 @@ stages:
 
           for label in "$label0" "$label1" "$label2" "$label3" "$label4" "$label5"; do
             echo "Debug: Processing label: $label"
-            if [[ "$label" == "Create Environment B" ]]; then
+            if [[ "$label" == "Create Variant2" ]]; then
               create_env_found=true
               break
             fi
