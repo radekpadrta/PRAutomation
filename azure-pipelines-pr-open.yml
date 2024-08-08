@@ -290,66 +290,67 @@ stages:
         scriptLocation: 'inlineScript'
         inlineScript: |
           set -e  # Exit immediately if a command exits with a non-zero status
-                
+               
           echo "Logging into Azure Container Registry"
           az acr login --name $(ACR_NAME) || { echo "Failed to login to ACR"; exit 1; }
           
-          echo "Building and pushing Docker image"
-          az acr build --registry $(ACR_NAME) --image myapp:nextjsPOC . || { echo "Failed to build and push image"; exit 1; }
+          echo "Building and pushing Docker image for Variant 2"
+          az acr build --registry $(ACR_NAME) --image myapp:nextjsPOC-variant2 --build-arg VARIANT=variant2 . || { echo "Failed to build and push image"; exit 1; }
           
           echo "Creating App Service Plan (if it doesn't exist)"
           az appservice plan create --name $(APP_SERVICE_PLAN_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --is-linux --sku B1 || { echo "Failed to create App Service Plan"; exit 1; }
           
-          echo "Creating Azure Web App for Containers"
+          echo "Creating Azure Web App for Containers (Variant 2)"
           az webapp create \
             --resource-group $(AZURE_RESOURCE_GROUP) \
             --plan $(APP_SERVICE_PLAN_NAME) \
-            --name $(AZURE_WEBAPPB_NAME) \
-            --deployment-container-image-name $(ACR_NAME).azurecr.io/myapp:nextjsPOC \
+            --name $(AZURE_WEBAPP_NAME)-variant2 \
+            --deployment-container-image-name $(ACR_NAME).azurecr.io/myapp:nextjsPOC-variant2 \
             || { echo "Failed to create Web App"; exit 1; }
-
+        
           echo "Assigning system-assigned managed identity to Web App"
-          az webapp identity assign --name $(AZURE_WEBAPPB_NAME) --resource-group $(AZURE_RESOURCE_GROUP)
+          az webapp identity assign --name $(AZURE_WEBAPP_NAME)-variant2 --resource-group $(AZURE_RESOURCE_GROUP)
           
           echo "Getting principal ID of Web App's managed identity"
-          WEBAPP_PRINCIPAL_ID=$(az webapp identity show --name $(AZURE_WEBAPPB_NAME) --resource-group $(AZURE_RESOURCE_GROUP) --query principalId --output tsv)
+          WEBAPP_PRINCIPAL_ID=$(az webapp identity show --name $(AZURE_WEBAPP_NAME)-variant2 --resource-group $(AZURE_RESOURCE_GROUP) --query principalId --output tsv)
           
           echo "Assigning AcrPull role to Web App for ACR"
           az role assignment create --assignee-object-id $WEBAPP_PRINCIPAL_ID --assignee-principal-type ServicePrincipal --scope /subscriptions/$(az account show --query id -o tsv)/resourceGroups/$(AZURE_RESOURCE_GROUP)/providers/Microsoft.ContainerRegistry/registries/$(ACR_NAME) --role AcrPull
           
-          echo "Configuring Web App container settings"
+          echo "Configuring Web App container settings for Variant 2"
           az webapp config container set \
-            --name $(AZURE_WEBAPPB_NAME) \
+            --name $(AZURE_WEBAPP_NAME)-variant2 \
             --resource-group $(AZURE_RESOURCE_GROUP) \
-            --docker-custom-image-name $(ACR_NAME).azurecr.io/myapp:nextjsPOC \
+            --docker-custom-image-name $(ACR_NAME).azurecr.io/myapp:nextjsPOC-variant2 \
             --docker-registry-server-url https://$(ACR_NAME).azurecr.io
           
           echo "Updating Web App to use managed identity for ACR"
           az webapp config set \
-            --name $(AZURE_WEBAPPB_NAME) \
+            --name $(AZURE_WEBAPP_NAME)-variant2 \
             --resource-group $(AZURE_RESOURCE_GROUP) \
             --generic-configurations '{"acrUseManagedIdentityCreds": true}'
-
-          echo "Setting environment variables"
+        
+          echo "Setting environment variables for Variant 2"
           az webapp config appsettings set \
             --resource-group $(AZURE_RESOURCE_GROUP) \
-            --name $(AZURE_WEBAPPB_NAME) \
+            --name $(AZURE_WEBAPP_NAME)-variant2 \
             --settings NEXT_PUBLIC_MESSAGE="$(NEXT_PUBLIC_MESSAGE)" \
             || { echo "Failed to set environment variables"; exit 1; }
-
-          echo "Restarting Web App"
-          az webapp restart --name $(AZURE_WEBAPPB_NAME) --resource-group $(AZURE_RESOURCE_GROUP) || { echo "Failed to restart Web App"; exit 1; }          
-          echo "All steps completed successfully"
-
+        
+          echo "Restarting Web App for Variant 2"
+          az webapp restart --name $(AZURE_WEBAPP_NAME)-variant2 --resource-group $(AZURE_RESOURCE_GROUP) || { echo "Failed to restart Web App"; exit 1; }          
+          echo "All steps completed successfully for Variant 2"
+        
           # Print out important information for debugging
           echo "ACR Name: $(ACR_NAME)"
           echo "Resource Group: $(AZURE_RESOURCE_GROUP)"
-          echo "Web App Name: $(AZURE_WEBAPPB_NAME)"
+          echo "Web App Name: $(AZURE_WEBAPP_NAME)-variant2"
           
           # List resources in the resource group
           echo "Resources in the resource group:"
           az resource list --resource-group $(AZURE_RESOURCE_GROUP) --output table
 
+        
     - task: GitHubComment@0
       condition: eq(variables['webAppBExists'], 'false')
       inputs:
