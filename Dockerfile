@@ -10,8 +10,14 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy the rest of the application code
-COPY . .
+# Add build argument for variant
+ARG VARIANT=.
+
+# Copy the variant-specific application code
+COPY ${VARIANT} .
+
+# Copy the rest of the application code (for shared files)
+COPY next.config.js .
 
 # Build the Next.js application
 RUN npm run build
