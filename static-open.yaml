@@ -95,18 +95,37 @@ stages:
           - This operation typically takes a few minutes to complete.
           - A follow-up comment will be posted here when the process is complete.
 
-    - task: AzureStaticWebApp@0
+    - task: AzureCLI@2
       displayName: 'Deploy Static Web App Variant1'
       condition: and(eq(variables['createEnvironmentFound'], 'true'), eq(variables['staticWebAppExists'], 'false'))
       inputs:
         azureSubscription: 'radek-padrta-vs-msp'
-        app_location: '/'
-        output_location: 'out'
-        api_location: 'api'
-        app_name: '$(STATIC_WEBAPP_NAME)'
-        resource_group: '$(AZURE_RESOURCE_GROUP)'
-        skip_app_build: false
-        deployment_environment: 'production'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          # Create the Static Web App
+          az staticwebapp create \
+            --name $(STATIC_WEBAPP_NAME) \
+            --resource-group $(AZURE_RESOURCE_GROUP) \
+            --source $(Build.SourcesDirectory) \
+            --location $(LOCATION) \
+            --branch main \
+            --app-location "/" \
+            --output-location "out" \
+            --api-location "api"
+
+          # Build the Next.js application
+          npm install
+          npm run build
+
+          # Deploy the content
+          az staticwebapp deploy \
+            --name $(STATIC_WEBAPP_NAME) \
+            --resource-group $(AZURE_RESOURCE_GROUP) \
+            --source $(Build.SourcesDirectory) \
+            --api-location "api" \
+            --app-location "/" \
+            --output-location "out"
 
     - task: GitHubComment@0
       displayName: 'Comment GH - Static Variant1 Deployed'
