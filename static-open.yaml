@@ -95,37 +95,40 @@ stages:
           - This operation typically takes a few minutes to complete.
           - A follow-up comment will be posted here when the process is complete.
 
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '18.x'
+      displayName: 'Install Node.js 18'
+
+    - script: |
+        npm install
+        npm run build
+      displayName: 'npm install and build'
+
     - task: AzureCLI@2
-      displayName: 'Deploy Static Web App Variant1'
+      displayName: 'Create and Deploy Static Web App'
       condition: and(eq(variables['createEnvironmentFound'], 'true'), eq(variables['staticWebAppExists'], 'false'))
       inputs:
         azureSubscription: 'radek-padrta-vs-msp'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          # Create the Static Web App
+          # Create Static Web App
           az staticwebapp create \
             --name $(STATIC_WEBAPP_NAME) \
             --resource-group $(AZURE_RESOURCE_GROUP) \
-            --source $(Build.SourcesDirectory) \
             --location $(LOCATION) \
             --branch main \
             --app-location "/" \
             --output-location "out" \
             --api-location "api"
 
-          # Build the Next.js application
-          npm install
-          npm run build
+          # Get the deployment token
+          DEPLOYMENT_TOKEN=$(az staticwebapp secrets list --name $(STATIC_WEBAPP_NAME) --query "properties.apiKey" -o tsv)
 
-          # Deploy the content
-          az staticwebapp deploy \
-            --name $(STATIC_WEBAPP_NAME) \
-            --resource-group $(AZURE_RESOURCE_GROUP) \
-            --source $(Build.SourcesDirectory) \
-            --api-location "api" \
-            --app-location "/" \
-            --output-location "out"
+          # Use the Azure Static Web Apps CLI to deploy
+          npm install -g @azure/static-web-apps-cli
+          swa deploy ./out --deployment-token $DEPLOYMENT_TOKEN --env production
 
     - task: GitHubComment@0
       displayName: 'Comment GH - Static Variant1 Deployed'
