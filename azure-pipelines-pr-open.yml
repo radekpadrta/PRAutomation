@@ -6,23 +6,15 @@ resources:
   - webhook: WebhookPRtest         
     connection: WebhookPRtestConnection
     filters:
-    - path: "pull_request.labels[?(@.name == 'Create Variant1')].name"
-      value: "Create Variant1"
     - path: "action"
       value: "labeled"
-  - webhook: WebhookPRtestUnlabeled
-    connection: WebhookPRtestUnlabeledConnection
-    filters:
-    - path: "pull_request.labels[?(@.name == 'Create Variant2')].name"
-      value: "Create Variant2"
-    - path: "action"
-      value: "labeled"
+
       
 variables:
   - name: AZURE_WEBAPP_NAME
     value: '${{parameters.WebhookPRtest.pull_request.id}}-variant1'
   - name: AZURE_WEBAPPB_NAME
-    value: '${{parameters.WebhookPRtestUnlabeled.pull_request.id}}-variant2'
+    value: '${{parameters.WebhookPRtest.pull_request.id}}-variant2'
   - name: AZURE_RESOURCE_GROUP
     value: 'POCNextJS'
   - name: ACR_NAME
@@ -75,12 +67,12 @@ stages:
         script: |
           create_env_found=false
       
-          label0="${{parameters.WebhookPRtestUnlabeled.pull_request.labels[0].name}}"
-          label1="${{parameters.WebhookPRtestUnlabeled.pull_request.labels[1].name}}"
-          label2="${{parameters.WebhookPRtestUnlabeled.pull_request.labels[2].name}}"
-          label3="${{parameters.WebhookPRtestUnlabeled.pull_request.labels[3].name}}"
-          label4="${{parameters.WebhookPRtestUnlabeled.pull_request.labels[4].name}}"
-          label5="${{parameters.WebhookPRtestUnlabeled.pull_request.labels[5].name}}"
+          label0="${{parameters.WebhookPRtest.pull_request.labels[0].name}}"
+          label1="${{parameters.WebhookPRtest.pull_request.labels[1].name}}"
+          label2="${{parameters.WebhookPRtest.pull_request.labels[2].name}}"
+          label3="${{parameters.WebhookPRtest.pull_request.labels[3].name}}"
+          label4="${{parameters.WebhookPRtest.pull_request.labels[4].name}}"
+          label5="${{parameters.WebhookPRtest.pull_request.labels[5].name}}"
 
           for label in "$label0" "$label1" "$label2" "$label3" "$label4" "$label5"; do
             echo "Webhook2: Processing label: $label"
@@ -279,7 +271,7 @@ stages:
       inputs:
         gitHubConnection: 'github-nextjsdummytest'
         repositoryName: '$(Build.Repository.Name)'
-        id: '${{parameters.WebhookPRtestUnlabeled.number}}'
+        id: '${{parameters.WebhookPRtest.number}}'
         comment: |
           🚀 **Creation Started for VARIANT2**
 
@@ -364,7 +356,7 @@ stages:
       inputs:
         gitHubConnection: 'github-nextjsdummytest'
         repositoryName: '$(Build.Repository.Name)'
-        id: '${{parameters.WebhookPRtestUnlabeled.number}}'
+        id: '${{parameters.WebhookPRtest.number}}'
         comment: |
           ☁️ **Web app VARIANT2 creation successful in Azure Cloud!**
 
@@ -412,7 +404,7 @@ stages:
       inputs:
         gitHubConnection: 'github-nextjsdummytest'
         repositoryName: '$(Build.Repository.Name)'
-        id: '${{parameters.WebhookPRtestUnlabeled.number}}'
+        id: '${{parameters.WebhookPRtest.number}}'
         comment: |
           ✅ **Web app VARIANT2 is ready!** 
 
