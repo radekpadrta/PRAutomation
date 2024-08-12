@@ -8,17 +8,13 @@ resources:
     filters:
     - path: "action"
       value: "labeled"
-  - webhook: WebhookPRtestUnlabeled
-    connection: WebhookPRtestUnlabeledConnection
-    filters:
-    - path: "action"
-      value: "labeled"
+
       
 variables:
   - name: STATIC_WEBAPP_NAME
     value: '${{parameters.WebhookPRtest.pull_request.id}}-static-variant1'
   - name: STATIC_WEBAPPB_NAME
-    value: '${{parameters.WebhookPRtestUnlabeled.pull_request.id}}-static-variant2'
+    value: '${{parameters.WebhookPRtest.pull_request.id}}-static-variant2'
   - name: AZURE_RESOURCE_GROUP
     value: 'POCNextJSStatic'
   - name: LOCATION
