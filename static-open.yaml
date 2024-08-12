@@ -8,6 +8,11 @@ resources:
     filters:
     - path: "action"
       value: "labeled"
+  - webhook: WebhookPRtestUnlabeled
+    connection: WebhookPRtestUnlabeledConnection
+    filters:
+    - path: "action"
+      value: "labeled"
       
 variables:
   - name: STATIC_WEBAPP_NAME
