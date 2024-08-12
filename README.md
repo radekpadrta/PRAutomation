@@ -12,26 +12,30 @@ When you create Static Web App with your code you will have production environme
 
 ## How to create Preview Environment?
 
-When you linked Static Web App with Github, the GitHub Action was created automatically.
+When you link Static Web App with Github, the GitHub Action is created automatically.
 
 ![](https://github.com/radekpadrta/PRAutomation/blob/226a4d524dc922c1cd752a6782f753711d3d3b55/Pasted%20image%2020240812160208.png)
-In this code, we can see, it is waiting if we create PR. If we create PR or push/closed the build will be triggered and it creates preview Environment.
+In this code, we can see it is waiting if we create a PR. If we create a PR or push/close, the build will be triggered and it creates a preview Environment.
 
-We can see it here (don't look for first build, it was just my mistake :). But in the second build we can see the GitHub action was created.
+We can see it here (don't look at the first build, it was just my mistake :). But in the second build, we can see the GitHub action was created.
 
 ![](https://github.com/radekpadrta/PRAutomation/blob/226a4d524dc922c1cd752a6782f753711d3d3b55/Pasted%20image%2020240812160442.png)
 
-What can we see in Azure?
+## What can we see in Azure?
 
-We can see the actual PR name in Preview Environments  - You can check picture above the name of the PR.
+We can see the actual PR name in Preview Environments - You can check the picture above for the name of the PR.
 
 ![](https://github.com/radekpadrta/PRAutomation/blob/226a4d524dc922c1cd752a6782f753711d3d3b55/Pasted%20image%2020240812160617.png)
 
-### Negative thoughts 
+## Thoughts 
 
-I didn't get any URL link in PR comments.. probably need to be written in GitHub action, which is not define automatically.
+I didn't get any URL link in PR comments.. probably needs to be written in GitHub action, which is not defined automatically.
 
-You can work with one code, you need to update Github Action if you want to select which code you want. But there is no option how to select the code from user perspective.
+You can work with one code, you need to update Github Action if you want to select which code you want. But there is no option how to select the code from a user perspective. Still there will be some action to upgrade the GitHub action.
+
+It is good, if you push changes to your repo and you have a PR open, the Github Action automatically pushes changes to preview Environment = no need to remove environment and build again.
+
+
 
 
 
