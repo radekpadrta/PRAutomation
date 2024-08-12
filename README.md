@@ -4,7 +4,9 @@ Static web is needed
  - You need linked your Static web app with Repo code, in our case with GitHub.
  - You select organization (my account)
  - Repository (where is code located)
- - Branch (in Azure you can select only one branch, but in GitHub Action you can put it more branches)![[Pasted image 20240812155658.png]]
+ - Branch (in Azure you can select only one branch, but in GitHub Action you can put it more branches)
+ 
+ ![](https://github.com/radekpadrta/PRAutomation/blob/226a4d524dc922c1cd752a6782f753711d3d3b55/Pasted%20image%2020240812155658.png)
 
 When you create Static Web App with your code you will have production environment = this is the code what you have.
 
@@ -12,18 +14,18 @@ When you create Static Web App with your code you will have production environme
 
 When you linked Static Web App with Github, the GitHub Action was created automatically.
 
-![[Pasted image 20240812160208.png]]
+![](https://github.com/radekpadrta/PRAutomation/blob/226a4d524dc922c1cd752a6782f753711d3d3b55/Pasted%20image%2020240812160208.png)
 In this code, we can see, it is waiting if we create PR. If we create PR or push/closed the build will be triggered and it creates preview Environment.
 
 We can see it here (don't look for first build, it was just my mistake :). But in the second build we can see the GitHub action was created.
 
-![[Pasted image 20240812160442.png]]
+![](https://github.com/radekpadrta/PRAutomation/blob/226a4d524dc922c1cd752a6782f753711d3d3b55/Pasted%20image%2020240812160442.png)
 
 What can we see in Azure?
 
 We can see the actual PR name in Preview Environments  - You can check picture above the name of the PR.
 
-![](/Pasted image 20240812160617.png)
+![](https://github.com/radekpadrta/PRAutomation/blob/226a4d524dc922c1cd752a6782f753711d3d3b55/Pasted%20image%2020240812160617.png)
 
 ### Negative thoughts 
 
