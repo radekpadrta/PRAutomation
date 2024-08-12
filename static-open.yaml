@@ -11,6 +11,7 @@ resources:
 
       
 variables:
+  - group: staticwebapp
   - name: STATIC_WEBAPP_NAME
     value: '${{parameters.WebhookPRtest.pull_request.id}}-static-variant1'
   - name: STATIC_WEBAPPB_NAME
@@ -86,13 +87,15 @@ stages:
           - The static web app creation process has been initiated.
           - This operation typically takes a few minutes to complete.
           - A follow-up comment will be posted here when the process is complete.
-
+    
+    - checkout: self
+      submodules: true
     - task: AzureStaticWebApp@0
       inputs:
         app_location: '/'
         api_location: ''
         output_location: '.next'
-        azure_static_web_apps_api_token: "6994862b024874a69d2c2b0794d54a9d5f23dc495fa562b8ea05c232670c7aa55-81d4b482-f24f-4427-b1d6-e8644888887a01e223066"
+        azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN)
   
     - task: GitHubComment@0
       displayName: 'Comment GH - Static Variant1 Deployed'
