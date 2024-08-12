@@ -6,15 +6,6 @@ resources:
   - webhook: WebhookPRtest         
     connection: WebhookPRtestConnection
     filters:
-    - path: "pull_request.labels[?(@.name == 'Create Static Variant1')].name"
-      value: "Create Static Variant1"
-    - path: "action"
-      value: "labeled"
-  - webhook: WebhookPRtestUnlabeled
-    connection: WebhookPRtestUnlabeledConnection
-    filters:
-    - path: "pull_request.labels[?(@.name == 'Create Static Variant2')].name"
-      value: "Create Static Variant2"
     - path: "action"
       value: "labeled"
       
