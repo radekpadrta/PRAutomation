@@ -129,7 +129,7 @@ stages:
         api_location: ''
         output_location: '.next'
         azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APP_API_TOKEN)
-        deployment_environment: 'preview'
+        deployment_environment: 'preview1'
   
     - task: GitHubComment@0
       displayName: 'Comment GH - Static Variant1 Deployed'
