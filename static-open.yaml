@@ -125,17 +125,6 @@ stages:
     - checkout: self
       submodules: true
 
-    - task: NodeTool@0
-      inputs:
-        versionSpec: '18.x'
-      displayName: 'Install Node.js'
-
-    - script: |
-        cd variant2
-        npm install
-        npm run build
-      displayName: 'Install dependencies and build app'
-
     - task: AzureStaticWebApp@0
       inputs:
         app_location: '/variant2'
@@ -143,7 +132,6 @@ stages:
         output_location: '.next'
         azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APP_API_TOKEN)
         deployment_environment: 'preview'
-        skip_app_build: true
   
     - task: GitHubComment@0
       displayName: 'Comment GH - Static Variant1 Deployed'
