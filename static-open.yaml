@@ -184,28 +184,28 @@ stages:
     - task: AzureCLI@2
       name: CheckVariant1
       inputs:
-        azureSubscription: 'Your-Azure-Service-Connection'
+        azureSubscription: 'radek-padrta-vs-msp'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          EXISTS=$(az staticwebapp environment list -n $(APP_NAME) --subscription $(SUBSCRIPTION_ID) -o tsv --query "[?buildId=='variant1'].buildId" | grep -q "variant1" && echo "true" || echo "false")
+          EXISTS=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='variant1'].buildId" | grep -q "variant1" && echo "true" || echo "false")
           echo "##vso[task.setvariable variable=VARIANT1_EXISTS;isOutput=true]$EXISTS"
           if [ "$EXISTS" = "true" ]; then
-            URL=$(az staticwebapp environment list -n $(APP_NAME) --subscription $(SUBSCRIPTION_ID) -o tsv --query "[?buildId=='variant1'].hostname")
+            URL=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='variant1'].hostname")
             echo "##vso[task.setvariable variable=VARIANT1_URL;isOutput=true]$URL"
           fi
           
     - task: AzureCLI@2
       name: CheckVariant2
       inputs:
-        azureSubscription: 'Your-Azure-Service-Connection'
+        azureSubscription: 'radek-padrta-vs-msp'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          EXISTS=$(az staticwebapp environment list -n $(APP_NAME) --subscription $(SUBSCRIPTION_ID) -o tsv --query "[?buildId=='variant2'].buildId" | grep -q "variant2" && echo "true" || echo "false")
+          EXISTS=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='variant2'].buildId" | grep -q "variant2" && echo "true" || echo "false")
           echo "##vso[task.setvariable variable=VARIANT2_EXISTS;isOutput=true]$EXISTS"
           if [ "$EXISTS" = "true" ]; then
-            URL=$(az staticwebapp environment list -n $(APP_NAME) --subscription $(SUBSCRIPTION_ID) -o tsv --query "[?buildId=='variant2'].hostname")
+            URL=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='variant2'].hostname")
             echo "##vso[task.setvariable variable=VARIANT2_URL;isOutput=true]$URL"
           fi
 
