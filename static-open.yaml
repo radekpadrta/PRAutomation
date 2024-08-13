@@ -200,7 +200,7 @@ stages:
 
     - task: AzureStaticWebApp@0
       name: "buildVariant2"
-      condition: eq(variables['VARIANT2_EXISTS'], 'false')
+      condition: eq(variables['VARIANT2_EXISTS'], false)
       inputs:
         app_location: '/variant2'
         api_location: ''
