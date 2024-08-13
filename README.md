@@ -40,9 +40,6 @@ It is good, if you push changes to your repo and you have a PR open, the Github 
 
 
 
-#### LINKS:
-
-
 
 
 12-08-2024-15:48
