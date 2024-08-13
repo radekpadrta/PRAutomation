@@ -60,6 +60,34 @@ stages:
             echo "##vso[task.setvariable variable=createEnvironmentFound]false"
           fi
 
+    - task: Bash@3
+      displayName: 'Check for Create Static Variant2 label'
+      inputs:
+        targetType: 'inline'
+        script: |
+          create_env_found=false
+      
+          label0="${{parameters.WebhookPRtest.pull_request.labels[0].name}}"
+          label1="${{parameters.WebhookPRtest.pull_request.labels[1].name}}"
+          label2="${{parameters.WebhookPRtest.pull_request.labels[2].name}}"
+          label3="${{parameters.WebhookPRtest.pull_request.labels[3].name}}"
+          label4="${{parameters.WebhookPRtest.pull_request.labels[4].name}}"
+          label5="${{parameters.WebhookPRtest.pull_request.labels[5].name}}"
+
+          for label in "$label0" "$label1" "$label2" "$label3" "$label4" "$label5"; do
+            echo "Webhook1: Processing label: $label"
+            if [[ "$label" == "Create Static Variant2" ]]; then
+              create_env_found=true
+              break
+            fi
+          done
+
+          if $create_env_found; then
+            echo "##vso[task.setvariable variable=createEnvironmentBFound]true"
+          else
+            echo "##vso[task.setvariable variable=createEnvironmentBFound]false"
+          fi
+
     - task: AzureCLI@2
       displayName: 'Check if Static Variant1 exists'
       condition: eq(variables['createEnvironmentFound'], 'true')
@@ -76,6 +104,22 @@ stages:
             echo "##vso[task.setvariable variable=staticWebAppExists]false"
           fi
 
+    - task: AzureCLI@2
+      displayName: 'Check if Static Variant2 exists'
+      condition: eq(variables['createEnvironmentBFound'], 'true')
+      inputs:
+        azureSubscription: 'radek-padrta-vs-msp'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          if az staticwebapp show --name $(STATIC_WEBAPP_NAME) --resource-group $(AZURE_RESOURCE_GROUP) &>/dev/null; then
+            echo "Static Web App $(STATIC_WEBAPP_NAME) exists."
+            echo "##vso[task.setvariable variable=staticWebApp2Exists]true"
+          else
+            echo "Static Web App $(STATIC_WEBAPP_NAME) does not exist."
+            echo "##vso[task.setvariable variable=staticWebApp2Exists]false"
+          fi
+
     - task: GitHubComment@0
       displayName: 'Comment GH - Starting Static Variant1'
       condition: and(eq(variables['createEnvironmentFound'], 'true'), eq(variables['staticWebAppExists'], 'false'))
@@ -85,6 +129,20 @@ stages:
         id: '${{parameters.WebhookPRtest.number}}'
         comment: |
           🚀 **Creation Started for Static VARIANT1**
+
+          - The static web app creation process has been initiated.
+          - This operation typically takes a few minutes to complete.
+          - A follow-up comment will be posted here when the process is complete.
+
+    - task: GitHubComment@0
+      displayName: 'Comment GH - Starting Static Variant2'
+      condition: and(eq(variables['createEnvironmentBFound'], 'true'), eq(variables['staticWebApp2Exists'], 'false'))
+      inputs:
+        gitHubConnection: 'github-nextjsdummytest'
+        repositoryName: '$(Build.Repository.Name)'
+        id: '${{parameters.WebhookPRtest.number}}'
+        comment: |
+          🚀 **Creation Started for Static VARIANT2**
 
           - The static web app creation process has been initiated.
           - This operation typically takes a few minutes to complete.
@@ -126,23 +184,36 @@ stages:
       submodules: true
 
     - task: AzureStaticWebApp@0
-      inputs:
-        app_location: '/variant2'
-        api_location: ''
-        output_location: '.next'
-        azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APP_API_TOKEN)
-        deployment_environment: 'preview'
-
-    - task: AzureStaticWebApp@0
+      name: "buildVariant1"
       inputs:
         app_location: '/'
         api_location: ''
         output_location: '.next'
         azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APP_API_TOKEN)
-        deployment_environment: 'preview2'
+        deployment_environment: 'Variant1'
+
+    - task: AzureStaticWebApp@0
+      name: "buildVariant2"
+      inputs:
+        app_location: '/variant2'
+        api_location: ''
+        output_location: '.next'
+        azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APP_API_TOKEN)
+        deployment_environment: 'Variant2'
+
+    - script: |
+        # Extract the URL from the deployment output
+        DEPLOY_URL=$(echo "$(buildVariant2.deploymentDetails)" | grep -oP 'https://[^ ]+')
+        
+        # Save the URL as a pipeline variable
+        echo "##vso[task.setvariable variable=DEPLOY_URL;isOutput=true]$DEPLOY_URL"
+        
+        echo "Deployment URL: $DEPLOY_URL"
+      displayName: 'Extract Deployment URL'
+      name: extractUrl
   
     - task: GitHubComment@0
-      displayName: 'Comment GH - Static Variant1 Deployed'
+      displayName: 'Comment GH - Static Variant2 Deployed'
       condition: and(eq(variables['createEnvironmentFound'], 'true'), eq(variables['staticWebAppExists'], 'false'))
       inputs:
         gitHubConnection: 'github-nextjsdummytest'
@@ -151,7 +222,7 @@ stages:
         comment: |
           ✅ **Static Web App VARIANT1 is ready!** 
 
-          You can access the application at https://$(STATIC_WEBAPP_NAME).azurestaticapps.net
+          You can access the application at $(extractUrl.DEPLOY_URL)
 
           Thank you for your patience!
 
