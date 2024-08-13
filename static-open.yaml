@@ -85,22 +85,6 @@ stages:
           fi
 
     - task: AzureCLI@2
-      displayName: 'Check if Static Variant1 exists'
-      condition: eq(variables['createEnvironmentFound'], 'true')
-      inputs:
-        azureSubscription: 'radek-padrta-vs-msp'
-        scriptType: 'bash'
-        scriptLocation: 'inlineScript'
-        inlineScript: |
-          if az staticwebapp show --name $(STATIC_WEBAPP_NAME) --resource-group $(AZURE_RESOURCE_GROUP) &>/dev/null; then
-            echo "Static Web App $(STATIC_WEBAPP_NAME) exists."
-            echo "##vso[task.setvariable variable=staticWebAppExists]true"
-          else
-            echo "Static Web App $(STATIC_WEBAPP_NAME) does not exist."
-            echo "##vso[task.setvariable variable=staticWebAppExists]false"
-          fi
-
-    - task: AzureCLI@2
       name: CheckVariant1
       condition: eq(variables['createEnvironmentFound'], 'true')
       inputs:
@@ -244,31 +228,27 @@ stages:
         inlineScript: |
           URL=$(az staticwebapp environment list -n $(StaticEmptyWebApp) --subscription $(SUBSCRIPTION_ID) -o tsv --query "[?buildId=='variant2'].hostname")
           echo "##vso[task.setvariable variable=VARIANT2_URL;isOutput=true]$URL"
-  
+
     - task: GitHubComment@0
-      displayName: 'Comment GH - Static Variant2 Deployed'
-      condition: and(eq(variables['createEnvironmentFound'], 'true'), eq(variables['staticWebAppExists'], 'false'))
+      displayName: 'Comment GH - Static Variant1 Deployed'
+      condition: and(eq(variables['createEnvironmentFound'], 'true'), eq(variables['VARIANT1_EXISTS'], 'false'))
       inputs:
         gitHubConnection: 'github-nextjsdummytest'
         repositoryName: '$(Build.Repository.Name)'
         id: '${{parameters.WebhookPRtest.number}}'
         comment: |
-          ✅ **Static Web App VARIANT1 is ready!** 
-
-          You can access the application at $(VARIANT1_URL)
-
+          ✅ **Static Web App VARIANT1 is ready!**
+          You can access the application at ${{ variables['GetVariant1URL.VARIANT1_URL'] }}
           Thank you for your patience!
 
     - task: GitHubComment@0
       displayName: 'Comment GH - Static Variant2 Deployed'
-      condition: and(eq(variables['createEnvironmentFound'], 'true'), eq(variables['staticWebAppExists'], 'false'))
+      condition: and(eq(variables['createEnvironmentBFound'], 'true'), eq(variables['VARIANT2_EXISTS'], 'false'))
       inputs:
         gitHubConnection: 'github-nextjsdummytest'
         repositoryName: '$(Build.Repository.Name)'
         id: '${{parameters.WebhookPRtest.number}}'
         comment: |
-          ✅ **Static Web App VARIANT2 is ready!** 
-
-          You can access the application at $(VARIANT2_URL)
-
+          ✅ **Static Web App VARIANT2 is ready!**
+          You can access the application at ${{ variables['GetVariant2URL.VARIANT2_URL'] }}
           Thank you for your patience!
