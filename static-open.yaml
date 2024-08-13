@@ -182,35 +182,42 @@ stages:
 
 
     - task: AzureCLI@2
-      displayName: 'Check Existing Environments'
+      name: CheckVariant1
       inputs:
-        azureSubscription: 'radek-padrta-vs-msp'
+        azureSubscription: 'Your-Azure-Service-Connection'
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          # List environments and store the output
-          environments=$(az staticwebapp environment list \
-            --name $(StaticEmptyWebApp) \
-            --resource-group $(AZURE_RESOURCE_GROUP) \
-            --query "[].name" -o tsv)
-
-          # Check for Variant1
-          if echo "$environments" | grep -q "Variant1"; then
-            echo "##vso[task.setvariable variable=VARIANT1_EXISTS]true"
-          else
-            echo "##vso[task.setvariable variable=VARIANT1_EXISTS]false"
+          EXISTS=$(az staticwebapp environment list -n $(APP_NAME) --subscription $(SUBSCRIPTION_ID) -o tsv --query "[?buildId=='variant1'].buildId" | grep -q "variant1" && echo "true" || echo "false")
+          echo "##vso[task.setvariable variable=VARIANT1_EXISTS;isOutput=true]$EXISTS"
+          if [ "$EXISTS" = "true" ]; then
+            URL=$(az staticwebapp environment list -n $(APP_NAME) --subscription $(SUBSCRIPTION_ID) -o tsv --query "[?buildId=='variant1'].hostname")
+            echo "##vso[task.setvariable variable=VARIANT1_URL;isOutput=true]$URL"
+          fi
+          
+    - task: AzureCLI@2
+      name: CheckVariant2
+      inputs:
+        azureSubscription: 'Your-Azure-Service-Connection'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          EXISTS=$(az staticwebapp environment list -n $(APP_NAME) --subscription $(SUBSCRIPTION_ID) -o tsv --query "[?buildId=='variant2'].buildId" | grep -q "variant2" && echo "true" || echo "false")
+          echo "##vso[task.setvariable variable=VARIANT2_EXISTS;isOutput=true]$EXISTS"
+          if [ "$EXISTS" = "true" ]; then
+            URL=$(az staticwebapp environment list -n $(APP_NAME) --subscription $(SUBSCRIPTION_ID) -o tsv --query "[?buildId=='variant2'].hostname")
+            echo "##vso[task.setvariable variable=VARIANT2_URL;isOutput=true]$URL"
           fi
 
-          # Check for Variant2
-          if echo "$environments" | grep -q "Variant2"; then
-            echo "##vso[task.setvariable variable=VARIANT2_EXISTS]true"
-          else
-            echo "##vso[task.setvariable variable=VARIANT2_EXISTS]false"
-          fi
-
-          # Output the results for debugging
-          echo "Variant1 exists: $(VARIANT1_EXISTS)"
-          echo "Variant2 exists: $(VARIANT2_EXISTS)"
+    - task: Bash@3
+      name: DisplayResults
+      inputs:
+        targetType: 'inline'
+        script: |
+          echo "Variant1 exists: $(CheckVariant1.VARIANT1_EXISTS)"
+          echo "Variant2 exists: $(CheckVariant2.VARIANT2_EXISTS)"
+          [ "$(CheckVariant1.VARIANT1_EXISTS)" = "true" ] && echo "Variant1 URL: $(CheckVariant1.VARIANT1_URL)" || echo "Variant1 URL not available"
+          [ "$(CheckVariant2.VARIANT2_EXISTS)" = "true" ] && echo "Variant2 URL: $(CheckVariant2.VARIANT2_URL)" || echo "Variant2 URL not available"
 
     - checkout: self
       submodules: true
