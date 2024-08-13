@@ -220,7 +220,11 @@ stages:
           You can access the application at https://$(GetVariant1URL.VARIANT1_URL)
           Thank you for your patience!
     - task: GitHubComment@0
-@@ -249,5 +249,5 @@ stages:
+      displayName: 'Comment GH - Static Variant2 Deployed'
+      condition: and(eq(variables['createEnvironmentFound'], 'true'), eq(variables['CheckVariant2.VARIANT2_EXISTS'], 'false'))
+      inputs:
+        gitHubConnection: 'github-nextjsdummytest'
+        repositoryName: '$(Build.Repository.Name)'
         id: '${{parameters.WebhookPRtest.number}}'
         comment: |
           ✅ **Static Web App VARIANT2 is ready!**
