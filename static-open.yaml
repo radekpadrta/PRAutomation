@@ -181,7 +181,7 @@ stages:
           echo "API token (masked): ${token:0:5}...${token: -5}"
 
 
-    - task: AzureCliTask@2
+    - task: AzureCLI@2
       displayName: 'Check Existing Environments'
       inputs:
         azureSubscription: 'radek-padrta-vs-msp'
@@ -211,7 +211,7 @@ stages:
           # Output the results for debugging
           echo "Variant1 exists: $(VARIANT1_EXISTS)"
           echo "Variant2 exists: $(VARIANT2_EXISTS)"
-          
+
     - checkout: self
       submodules: true
 
