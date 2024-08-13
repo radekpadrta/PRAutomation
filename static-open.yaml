@@ -17,7 +17,7 @@ variables:
   - name: STATIC_WEBAPPB_NAME
     value: '${{parameters.WebhookPRtest.pull_request.id}}-static-variant2'
   - name: AZURE_RESOURCE_GROUP
-    value: 'POCNextJSStatic'
+    value: 'POCNextJS'
   - name: LOCATION
     value: 'eastus2'
   - name: NEXT_PUBLIC_MESSAGE
