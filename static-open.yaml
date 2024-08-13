@@ -6,8 +6,11 @@ resources:
   - webhook: WebhookPRtest         
     connection: WebhookPRtestConnection
     filters:
-    - path: "action"
-      value: "labeled", "synchronize"
+    - anyOf:
+      - path: "action"
+        value: "labeled"
+      - path: "action"
+        value: "synchronize"
 
       
 variables:
