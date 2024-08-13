@@ -131,7 +131,7 @@ stages:
         api_location: ''
         output_location: '.next'
         azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APP_API_TOKEN)
-        deployment_environment: 'preview2'
+        deployment_environment: 'preview'
     
     - checkout: self
       submodules: true
