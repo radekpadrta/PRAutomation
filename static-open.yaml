@@ -19,7 +19,7 @@ variables:
   - name: AZURE_RESOURCE_GROUP
     value: 'POCNextJSStatic'
   - name: LOCATION
-    value: 'eastus'
+    value: 'eastus2'
   - name: NEXT_PUBLIC_MESSAGE
     value: 'This is ENV.Variables for Static Web App'
     
