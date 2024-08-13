@@ -154,7 +154,6 @@ stages:
     
     - task: AzureCLI@2
       displayName: createEmptyWebApp
-      condition: and(eq(variables['VARIANT1_EXISTS'], 'false'), eq(variables['VARIANT2_EXISTS'], 'false'))
       inputs:
         azureSubscription: 'radek-padrta-vs-msp'
         scriptType: 'bash'
