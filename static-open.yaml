@@ -11,7 +11,6 @@ resources:
 
       
 variables:
-  - group: staticwebapp
   - name: STATIC_WEBAPP_NAME
     value: '${{parameters.WebhookPRtest.pull_request.id}}-static-variant1'
   - name: STATIC_WEBAPPB_NAME
@@ -22,6 +21,8 @@ variables:
     value: 'eastus2'
   - name: NEXT_PUBLIC_MESSAGE
     value: 'This is ENV.Variables for Static Web App'
+  - name: StaticEmptyWebApp
+    value: 'TestStaticWebApp'
     
 stages:
 - stage: BuildAndDeploy
@@ -96,10 +97,9 @@ stages:
         scriptLocation: 'inlineScript'
         inlineScript: |
           # Create empty Azure Static Web App
-          webAppName="testradekprauto"
           
           az staticwebapp create \
-            --name $webAppName \
+            --name $(StaticEmptyWebApp) \
             --resource-group $(AZURE_RESOURCE_GROUP) \
             --location $(LOCATION) \
             --sku Free \
@@ -107,7 +107,7 @@ stages:
           
           # Get the deployment token (API token)
           token=$(az staticwebapp secrets list \
-            --name $webAppName \
+            --name $(StaticEmptyWebApp) \
             --resource-group $(AZURE_RESOURCE_GROUP) \
             --query "properties.apiKey" -o tsv)
           
@@ -115,11 +115,21 @@ stages:
           echo "##vso[task.setvariable variable=AZURE_STATIC_WEB_APP_API_TOKEN;isSecret=true]$token"
           
           # Output the web app name for future reference
-          echo "##vso[task.setvariable variable=AZURE_STATIC_WEB_APP_NAME;isOutput=true]$webAppName"
+          echo "##vso[task.setvariable variable=AZURE_STATIC_WEB_APP_NAME;isOutput=true]$(StaticEmptyWebApp)"
           
           # Print the web app name and a masked version of the token for debugging
-          echo "Created empty Static Web App: $webAppName"
+          echo "Created empty Static Web App: $(StaticEmptyWebApp)"
           echo "API token (masked): ${token:0:5}...${token: -5}"
+
+    - checkout: self
+      submodules: true
+    - task: AzureStaticWebApp@0
+      inputs:
+        app_location: '/'
+        api_location: ''
+        output_location: '.next'
+        azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN)
+        deployment_environment: 'preview'
   
     - task: GitHubComment@0
       displayName: 'Comment GH - Static Variant1 Deployed'
