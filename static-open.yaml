@@ -8,6 +8,8 @@ resources:
     filters:
     - path: "action"
       value: "labeled"
+    - path: "push"
+      value: "*"
 
       
 variables:
