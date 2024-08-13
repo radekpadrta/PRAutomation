@@ -7,7 +7,7 @@ resources:
     connection: WebhookPRtestConnection
     filters:
     - path: "action"
-      value: ["labeled", "synchronize"]
+      value: "labeled", "synchronize"
 
       
 variables:
