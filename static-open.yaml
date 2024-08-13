@@ -126,7 +126,7 @@ stages:
 
     - task: GitHubComment@0
       displayName: 'Comment GH - Starting Static Variant1'
-      condition: and(eq(variables['createEnvironmentFound'], 'true'), eq(variables['VARIANT1_EXISTS'], 'false'))
+      condition: and(eq(variables['createEnvironmentFound'], 'true'), eq(variables['CheckVariant1.VARIANT1_EXISTS'], 'false'))
       inputs:
         gitHubConnection: 'github-nextjsdummytest'
         repositoryName: '$(Build.Repository.Name)'
@@ -140,7 +140,7 @@ stages:
 
     - task: GitHubComment@0
       displayName: 'Comment GH - Starting Static Variant2'
-      condition: and(eq(variables['createEnvironmentBFound'], 'true'), eq(variables['VARIANT2_EXISTS'], 'false'))
+      condition: and(eq(variables['createEnvironmentBFound'], 'true'), eq(variables['CheckVariant2.VARIANT2_EXISTS'], 'false'))
       inputs:
         gitHubConnection: 'github-nextjsdummytest'
         repositoryName: '$(Build.Repository.Name)'
@@ -231,7 +231,7 @@ stages:
 
     - task: GitHubComment@0
       displayName: 'Comment GH - Static Variant1 Deployed'
-      condition: and(eq(variables['createEnvironmentFound'], 'true'), eq(variables['VARIANT1_EXISTS'], 'false'))
+      condition: and(eq(variables['createEnvironmentFound'], 'true'), eq(variables['CheckVariant1.VARIANT1_EXISTS'], 'false'))
       inputs:
         gitHubConnection: 'github-nextjsdummytest'
         repositoryName: '$(Build.Repository.Name)'
@@ -243,7 +243,7 @@ stages:
 
     - task: GitHubComment@0
       displayName: 'Comment GH - Static Variant2 Deployed'
-      condition: and(eq(variables['createEnvironmentBFound'], 'true'), eq(variables['VARIANT2_EXISTS'], 'false'))
+      condition: and(eq(variables['createEnvironmentBFound'], 'true'), eq(variables['CheckVariant2.VARIANT2_EXISTS'], 'false'))
       inputs:
         gitHubConnection: 'github-nextjsdummytest'
         repositoryName: '$(Build.Repository.Name)'
