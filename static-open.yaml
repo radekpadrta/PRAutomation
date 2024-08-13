@@ -201,16 +201,21 @@ stages:
         azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APP_API_TOKEN)
         deployment_environment: 'Variant2'
 
-    - script: |
-        # Extract the URL from the deployment output
-        DEPLOY_URL=$(echo "$(buildVariant2.deploymentDetails)" | grep -oP 'https://[^ ]+')
+    - pwsh: |
+        $buildLogs = Get-Content -Path $(Build.SourcesDirectory)/__azureStaticWebAppsbuild.log
+        $url = $buildLogs | Select-String -Pattern "Visit your site at: (https://.*)" | ForEach-Object { $_.Matches.Groups[1].Value }
+        $status = $buildLogs | Select-String -Pattern "Status: (\w+)" | Select-Object -Last 1 | ForEach-Object { $_.Matches.Groups[1].Value }
+        $time = $buildLogs | Select-String -Pattern "Time: ([\d.]+)" | Select-Object -Last 1 | ForEach-Object { $_.Matches.Groups[1].Value }
         
-        # Save the URL as a pipeline variable
-        echo "##vso[task.setvariable variable=DEPLOY_URL;isOutput=true]$DEPLOY_URL"
+        Write-Host "##vso[task.setvariable variable=staticWebAppUrl;isOutput=true]$url"
+        Write-Host "##vso[task.setvariable variable=deploymentStatus;isOutput=true]$status"
+        Write-Host "##vso[task.setvariable variable=deploymentTime;isOutput=true]$time"
         
-        echo "Deployment URL: $DEPLOY_URL"
-      displayName: 'Extract Deployment URL'
-      name: extractUrl
+        Write-Host "Deployment Status: $status"
+        Write-Host "Deployment Time: $time seconds"
+        Write-Host "Static Web App URL: $url"
+      name: setVariables
+      condition: succeededOrFailed()
   
     - task: GitHubComment@0
       displayName: 'Comment GH - Static Variant2 Deployed'
