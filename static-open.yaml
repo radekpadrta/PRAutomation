@@ -88,14 +88,38 @@ stages:
           - This operation typically takes a few minutes to complete.
           - A follow-up comment will be posted here when the process is complete.
     
-    - checkout: self
-      submodules: true
-    - task: AzureStaticWebApp@0
+    - task: AzureCLI@2
+      displayName: createEmptyWebApp
       inputs:
-        app_location: '/'
-        api_location: ''
-        output_location: '.next'
-        azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN)
+        azureSubscription: 'radek-padrta-vs-msp'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          # Create empty Azure Static Web App
+          webAppName="testradekprauto"
+          
+          az staticwebapp create \
+            --name $webAppName \
+            --resource-group $(AZURE_RESOURCE_GROUP) \
+            --location $(LOCATION) \
+            --sku Free \
+            --output none
+          
+          # Get the deployment token (API token)
+          token=$(az staticwebapp secrets list \
+            --name $webAppName \
+            --resource-group $(AZURE_RESOURCE_GROUP) \
+            --query "properties.apiKey" -o tsv)
+          
+          # Store the token as a pipeline variable
+          echo "##vso[task.setvariable variable=AZURE_STATIC_WEB_APP_API_TOKEN;isSecret=true]$token"
+          
+          # Output the web app name for future reference
+          echo "##vso[task.setvariable variable=AZURE_STATIC_WEB_APP_NAME;isOutput=true]$webAppName"
+          
+          # Print the web app name and a masked version of the token for debugging
+          echo "Created empty Static Web App: $webAppName"
+          echo "API token (masked): ${token:0:5}...${token: -5}"
   
     - task: GitHubComment@0
       displayName: 'Comment GH - Static Variant1 Deployed'
