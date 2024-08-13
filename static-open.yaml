@@ -125,7 +125,7 @@ stages:
       submodules: true
     - task: AzureStaticWebApp@0
       inputs:
-        app_location: '/'
+        app_location: '/variant2'
         api_location: ''
         output_location: '.next'
         azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APP_API_TOKEN)
