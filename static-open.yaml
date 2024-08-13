@@ -6,7 +6,6 @@ resources:
   - webhook: WebhookPRtest         
     connection: WebhookPRtestConnection
     filters:
-    - anyOf:
       - path: "action"
         value: "labeled"
       - path: "action"
