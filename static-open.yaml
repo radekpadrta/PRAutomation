@@ -6,10 +6,11 @@ resources:
   - webhook: WebhookPRtest         
     connection: WebhookPRtestConnection
     filters:
-    - path: "action"
-      value: "labeled"
-    - path: "push"
+    - path: "pull_request.synchronize"
       value: "*"
+    - path: "pull_request.labeled"
+      value: "*"
+
 
       
 variables:
