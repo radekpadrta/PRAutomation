@@ -209,7 +209,7 @@ stages:
           echo "##vso[task.setvariable variable=VARIANT2_URL;isOutput=true]$URL"
     - task: GitHubComment@0
       displayName: 'Comment GH - Static Variant1 Deployed'
-      condition: and(eq(variables['createEnvironmentFound'], 'true'), eq(variables['CheckVariant1.VARIANT1_EXISTS'], 'false'))
+      condition: eq(variables['createEnvironmentFound'], 'true')
       inputs:
         gitHubConnection: 'github-nextjsdummytest'
         repositoryName: '$(Build.Repository.Name)'
@@ -222,7 +222,7 @@ stages:
 
     - task: GitHubComment@0
       displayName: 'Comment GH - Static Variant2 Deployed'
-      condition: and(eq(variables['createEnvironmentBFound'], 'true'), eq(variables['CheckVariant2.VARIANT2_EXISTS'], 'false'))
+      condition: eq(variables['createEnvironmentBFound'], 'true')
       inputs:
         gitHubConnection: 'github-nextjsdummytest'
         repositoryName: '$(Build.Repository.Name)'
