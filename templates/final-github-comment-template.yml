@@ -20,6 +20,5 @@ steps:
     id: '${{ parameters.prNumber }}'
     comment: |
       ✅ **Static Web App VARIANT${{ parameters.variantNumber }} is ready!**
-      You can access the application at $(${{ parameters.urlVarName }})
-      You can access the application at https://$(${{ parameters.urlVarName }})
+      You can access the application at https://${{ parameters.urlVarName }}
       Thank you for your patience!
