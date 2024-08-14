@@ -47,25 +47,19 @@ stages:
     
     - template: templates/label-to-check.yaml
       parameters:
-        labelToCheck: 'Create Static Variant1'
+        labelToCheck: 'Create Variant1'
         variableName: 'createEnvironmentWAFound'
         prLabels: ${{ parameters.WebhookPRtest.pull_request.labels }}
 
     - template: templates/label-to-check.yaml
       parameters:
-        labelToCheck: 'Create Static Variant2'
+        labelToCheck: 'Create Variant2'
         variableName: 'createEnvironmentWABFound'
         prLabels: ${{ parameters.WebhookPRtest.pull_request.labels }}
 
 
-    - template: templates/label-check-template.yml
-      parameters:
-        labelToCheck: 'Create Static Variant2'
-        variableName: 'createEnvironmentBFound'
-        prLabels: ${{ parameters.WebhookPRtest.pull_request.labels }}
-
     # Static Web App checks
-    - template: templates/swa-check-template.yml
+    - template: templates/swa-check-template.yaml
       parameters:
         variantNumber: '1'
         createEnvironmentVarName: 'createEnvironmentFound'
@@ -73,7 +67,7 @@ stages:
         staticWebAppName: '$(StaticEmptyWebApp)'
         prId: '${{ parameters.WebhookPRtest.pull_request.id }}'
 
-    - template: templates/swa-check-template.yml
+    - template: templates/swa-check-template.yaml
       parameters:
         variantNumber: '2'
         createEnvironmentVarName: 'createEnvironmentBFound'
@@ -82,7 +76,7 @@ stages:
         prId: '${{ parameters.WebhookPRtest.pull_request.id }}'
 
     # Web App checks
-    - template: templates/wa-check-template.yml
+    - template: templates/wa-check-template.yaml
       parameters:
         variantNumber: '1'
         createEnvironmentVarName: 'createEnvironmentWAFound'
@@ -90,7 +84,7 @@ stages:
         webAppName: '$(AZURE_WEBAPP_NAME)'
         resourceGroup: '$(AZURE_RESOURCE_GROUP)'
 
-    - template: templates/wa-check-template.yml
+    - template: templates/wa-check-template.yaml
       parameters:
         variantNumber: '2'
         createEnvironmentVarName: 'createEnvironmentWABFound'
