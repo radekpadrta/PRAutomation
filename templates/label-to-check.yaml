@@ -3,6 +3,9 @@ parameters:
     type: string
   - name: variableName
     type: string
+  - name: prLabels
+    type: object
+    default: []
 
 steps:
 - task: Bash@3
@@ -12,12 +15,12 @@ steps:
     script: |
       create_env_found=false
       
-      label0="${{parameters.WebhookPRtest.pull_request.labels[0].name}}"
-      label1="${{parameters.WebhookPRtest.pull_request.labels[1].name}}"
-      label2="${{parameters.WebhookPRtest.pull_request.labels[2].name}}"
-      label3="${{parameters.WebhookPRtest.pull_request.labels[3].name}}"
-      label4="${{parameters.WebhookPRtest.pull_request.labels[4].name}}"
-      label5="${{parameters.WebhookPRtest.pull_request.labels[5].name}}"
+      label0="${{ parameters.prLabels[0].name }}"
+      label1="${{ parameters.prLabels[1].name }}"
+      label2="${{ parameters.prLabels[2].name }}"
+      label3="${{ parameters.prLabels[3].name }}"
+      label4="${{ parameters.prLabels[4].name }}"
+      label5="${{ parameters.prLabels[5].name }}"
       for label in "$label0" "$label1" "$label2" "$label3" "$label4" "$label5"; do
         echo "Processing label: $label"
         if [[ "$label" == "${{ parameters.labelToCheck }}" ]]; then

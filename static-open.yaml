@@ -29,21 +29,25 @@ stages:
       parameters:
         labelToCheck: 'Create Static Variant1'
         variableName: 'createEnvironmentFound'
+        prLabels: ${{ parameters.WebhookPRtest.pull_request.labels }}
 
     - template: templates/label-to-check.yaml
       parameters:
         labelToCheck: 'Create Static Variant2'
         variableName: 'createEnvironmentBFound'
+        prLabels: ${{ parameters.WebhookPRtest.pull_request.labels }}
     
     - template: templates/label-to-check.yaml
       parameters:
         labelToCheck: 'Create Static Variant1'
         variableName: 'createEnvironmentWAFound'
+        prLabels: ${{ parameters.WebhookPRtest.pull_request.labels }}
 
     - template: templates/label-to-check.yaml
       parameters:
         labelToCheck: 'Create Static Variant2'
         variableName: 'createEnvironmentWABFound'
+        prLabels: ${{ parameters.WebhookPRtest.pull_request.labels }}
 
 
     - task: AzureCLI@2
