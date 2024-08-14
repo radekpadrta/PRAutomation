@@ -25,56 +25,27 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     steps:
-    - task: Bash@3
-      displayName: 'Check for Create Static Variant1 label'
-      inputs:
-        targetType: 'inline'
-        script: |
-          create_env_found=false
-      
-          label0="${{parameters.WebhookPRtest.pull_request.labels[0].name}}"
-          label1="${{parameters.WebhookPRtest.pull_request.labels[1].name}}"
-          label2="${{parameters.WebhookPRtest.pull_request.labels[2].name}}"
-          label3="${{parameters.WebhookPRtest.pull_request.labels[3].name}}"
-          label4="${{parameters.WebhookPRtest.pull_request.labels[4].name}}"
-          label5="${{parameters.WebhookPRtest.pull_request.labels[5].name}}"
-          for label in "$label0" "$label1" "$label2" "$label3" "$label4" "$label5"; do
-            echo "Webhook1: Processing label: $label"
-            if [[ "$label" == "Create Static Variant1" ]]; then
-              create_env_found=true
-              break
-            fi
-          done
-          if $create_env_found; then
-            echo "##vso[task.setvariable variable=createEnvironmentFound]true"
-          else
-            echo "##vso[task.setvariable variable=createEnvironmentFound]false"
-          fi
-    - task: Bash@3
-      displayName: 'Check for Create Static Variant2 label'
-      inputs:
-        targetType: 'inline'
-        script: |
-          create_env_found=false
-      
-          label0="${{parameters.WebhookPRtest.pull_request.labels[0].name}}"
-          label1="${{parameters.WebhookPRtest.pull_request.labels[1].name}}"
-          label2="${{parameters.WebhookPRtest.pull_request.labels[2].name}}"
-          label3="${{parameters.WebhookPRtest.pull_request.labels[3].name}}"
-          label4="${{parameters.WebhookPRtest.pull_request.labels[4].name}}"
-          label5="${{parameters.WebhookPRtest.pull_request.labels[5].name}}"
-          for label in "$label0" "$label1" "$label2" "$label3" "$label4" "$label5"; do
-            echo "Webhook1: Processing label: $label"
-            if [[ "$label" == "Create Static Variant2" ]]; then
-              create_env_found=true
-              break
-            fi
-          done
-          if $create_env_found; then
-            echo "##vso[task.setvariable variable=createEnvironmentBFound]true"
-          else
-            echo "##vso[task.setvariable variable=createEnvironmentBFound]false"
-          fi
+    - template: templates/label-to-check.yaml
+      parameters:
+        labelToCheck: 'Create Static Variant1'
+        variableName: 'createEnvironmentFound'
+
+    - template: templates/label-to-check.yaml
+      parameters:
+        labelToCheck: 'Create Static Variant2'
+        variableName: 'createEnvironmentBFound'
+    
+    - template: templates/label-to-check.yaml
+      parameters:
+        labelToCheck: 'Create Static Variant1'
+        variableName: 'createEnvironmentWAFound'
+
+    - template: templates/label-to-check.yaml
+      parameters:
+        labelToCheck: 'Create Static Variant2'
+        variableName: 'createEnvironmentWABFound'
+
+
     - task: AzureCLI@2
       name: CheckVariant1
       condition: eq(variables['createEnvironmentFound'], 'true')
