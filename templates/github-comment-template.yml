@@ -1,0 +1,25 @@
+parameters:
+  - name: variantNumber
+    type: string
+  - name: createEnvironmentVarName
+    type: string
+  - name: variantExistsVarName
+    type: string
+  - name: gitHubConnection
+    type: string
+  - name: prNumber
+    type: string
+
+steps:
+- task: GitHubComment@0
+  displayName: 'Comment GH - Starting Static Variant${{ parameters.variantNumber }}'
+  condition: and(eq(variables['${{ parameters.createEnvironmentVarName }}'], 'true'), eq(variables['${{ parameters.variantExistsVarName }}'], 'false'))
+  inputs:
+    gitHubConnection: '${{ parameters.gitHubConnection }}'
+    repositoryName: '$(Build.Repository.Name)'
+    id: '${{ parameters.prNumber }}'
+    comment: |
+      🚀 **Creation Started for Static VARIANT${{ parameters.variantNumber }}**
+      - The static web app creation process has been initiated.
+      - This operation typically takes a few minutes to complete.
+      - A follow-up comment will be posted here when the process is complete.

@@ -1,0 +1,25 @@
+parameters:
+  - name: variantNumber
+    type: string
+  - name: createEnvironmentVarName
+    type: string
+  - name: gitHubConnection
+    type: string
+  - name: prNumber
+    type: string
+  - name: urlVarName
+    type: string
+
+steps:
+- task: GitHubComment@0
+  displayName: 'Comment GH - Static Variant${{ parameters.variantNumber }} Deployed'
+  condition: eq(variables['${{ parameters.createEnvironmentVarName }}'], 'true')
+  inputs:
+    gitHubConnection: '${{ parameters.gitHubConnection }}'
+    repositoryName: '$(Build.Repository.Name)'
+    id: '${{ parameters.prNumber }}'
+    comment: |
+      ✅ **Static Web App VARIANT${{ parameters.variantNumber }} is ready!**
+      You can access the application at $(${{ parameters.urlVarName }})
+      You can access the application at https://$(${{ parameters.urlVarName }})
+      Thank you for your patience!
