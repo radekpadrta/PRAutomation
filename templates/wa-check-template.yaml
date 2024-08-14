@@ -1,0 +1,28 @@
+parameters:
+  - name: variantNumber
+    type: string
+  - name: createEnvironmentVarName
+    type: string
+  - name: azureSubscription
+    type: string
+  - name: webAppName
+    type: string
+  - name: resourceGroup
+    type: string
+
+steps:
+- task: AzureCLI@2
+  displayName: 'Exist variant${{ parameters.variantNumber }}?'
+  condition: eq(variables['${{ parameters.createEnvironmentVarName }}'], 'true')
+  inputs:
+    azureSubscription: '${{ parameters.azureSubscription }}'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      if az webapp show --name ${{ parameters.webAppName }} --resource-group ${{ parameters.resourceGroup }} &>/dev/null; then
+        echo "Web app ${{ parameters.webAppName }} exists."
+        echo "##vso[task.setvariable variable=webApp${{ parameters.variantNumber }}Exists]true"
+      else
+        echo "Web app ${{ parameters.webAppName }} does not exist."
+        echo "##vso[task.setvariable variable=webApp${{ parameters.variantNumber }}Exists]false"
+      fi

@@ -1,0 +1,28 @@
+parameters:
+  - name: variantNumber
+    type: string
+  - name: createEnvironmentVarName
+    type: string
+  - name: azureSubscription
+    type: string
+  - name: staticWebAppName
+    type: string
+  - name: prId
+    type: string
+
+steps:
+- task: AzureCLI@2
+  name: CheckVariant${{ parameters.variantNumber }}
+  condition: eq(variables['${{ parameters.createEnvironmentVarName }}'], 'true')
+  inputs:
+    azureSubscription: '${{ parameters.azureSubscription }}'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      PR_VARIANT="${{ parameters.prId }}v${{ parameters.variantNumber }}"
+      EXISTS=$(az staticwebapp environment list -n ${{ parameters.staticWebAppName }} -o tsv --query "[?buildId=='$PR_VARIANT'].buildId" | grep -q "$PR_VARIANT" && echo "true" || echo "false")
+      echo "##vso[task.setvariable variable=VARIANT${{ parameters.variantNumber }}_EXISTS;isOutput=true]$EXISTS"
+      if [ "$EXISTS" = "true" ]; then
+        URL=$(az staticwebapp environment list -n ${{ parameters.staticWebAppName }} -o tsv --query "[?buildId=='$PR_VARIANT'].hostname")
+        echo "##vso[task.setvariable variable=VARIANT${{ parameters.variantNumber }}_URL;isOutput=true]$URL"
+      fi

@@ -9,6 +9,10 @@ resources:
       value: "labeled"
       
 variables:
+  - name: AZURE_WEBAPP_NAME
+    value: '${{parameters.WebhookPRtest.pull_request.id}}-variant1'
+  - name: AZURE_WEBAPPB_NAME
+    value: '${{parameters.WebhookPRtest.pull_request.id}}-variant2'
   - name: AZURE_RESOURCE_GROUP
     value: 'POCNextJS'
   - name: LOCATION
@@ -17,6 +21,10 @@ variables:
     value: 'test MSG'
   - name: StaticEmptyWebApp
     value: 'TestStaticWebApp'
+  - name: ACR_NAME
+    value: 'testnextjs'
+  - name: APP_SERVICE_PLAN_NAME
+    value: 'testnextJSdummy'
     
 stages:
 - stage: BuildAndDeploy
@@ -50,47 +58,47 @@ stages:
         prLabels: ${{ parameters.WebhookPRtest.pull_request.labels }}
 
 
-    - task: AzureCLI@2
-      name: CheckVariant1
-      condition: eq(variables['createEnvironmentFound'], 'true')
-      inputs:
-        azureSubscription: 'radek-padrta-vs-msp'
-        scriptType: 'bash'
-        scriptLocation: 'inlineScript'
-        inlineScript: |
-          PR_VARIANT="${{parameters.WebhookPRtest.pull_request.id}}v1"
-          EXISTS=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='$PR_VARIANT'].buildId" | grep -q "$PR_VARIANT" && echo "true" || echo "false")
-          echo "##vso[task.setvariable variable=VARIANT1_EXISTS;isOutput=true]$EXISTS"
-          if [ "$EXISTS" = "true" ]; then
-            URL=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='$PR_VARIANT'].hostname")
-            echo "##vso[task.setvariable variable=VARIANT1_URL;isOutput=true]$URL"
-          fi
-          
-    - task: AzureCLI@2
-      name: CheckVariant2
-      condition: eq(variables['createEnvironmentBFound'], 'true')
-      inputs:
-        azureSubscription: 'radek-padrta-vs-msp'
-        scriptType: 'bash'
-        scriptLocation: 'inlineScript'
-        inlineScript: |
-          PR_VARIANT2="${{parameters.WebhookPRtest.pull_request.id}}v2"
-          EXISTS=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='$PR_VARIANT2'].buildId" | grep -q "$PR_VARIANT2" && echo "true" || echo "false")
-          echo "##vso[task.setvariable variable=VARIANT2_EXISTS;isOutput=true]$EXISTS"
-          if [ "$EXISTS" = "true" ]; then
-            URL=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='$PR_VARIANT2'].hostname")
-            echo "##vso[task.setvariable variable=VARIANT2_URL;isOutput=true]$URL"
-          fi
+    - template: templates/label-check-template.yml
+      parameters:
+        labelToCheck: 'Create Static Variant2'
+        variableName: 'createEnvironmentBFound'
+        prLabels: ${{ parameters.WebhookPRtest.pull_request.labels }}
 
-    - task: Bash@3
-      name: DisplayResults
-      inputs:
-        targetType: 'inline'
-        script: |
-          echo "Variant1 exists: $(CheckVariant1.VARIANT1_EXISTS)"
-          echo "Variant2 exists: $(CheckVariant2.VARIANT2_EXISTS)"
-          [ "$(CheckVariant1.VARIANT1_EXISTS)" = "true" ] && echo "Variant1 URL: $(CheckVariant1.VARIANT1_URL)" || echo "Variant1 URL not available"
-          [ "$(CheckVariant2.VARIANT2_EXISTS)" = "true" ] && echo "Variant2 URL: $(CheckVariant2.VARIANT2_URL)" || echo "Variant2 URL not available"
+    # Static Web App checks
+    - template: templates/swa-check-template.yml
+      parameters:
+        variantNumber: '1'
+        createEnvironmentVarName: 'createEnvironmentFound'
+        azureSubscription: 'radek-padrta-vs-msp'
+        staticWebAppName: '$(StaticEmptyWebApp)'
+        prId: '${{ parameters.WebhookPRtest.pull_request.id }}'
+
+    - template: templates/swa-check-template.yml
+      parameters:
+        variantNumber: '2'
+        createEnvironmentVarName: 'createEnvironmentBFound'
+        azureSubscription: 'radek-padrta-vs-msp'
+        staticWebAppName: '$(StaticEmptyWebApp)'
+        prId: '${{ parameters.WebhookPRtest.pull_request.id }}'
+
+    # Web App checks
+    - template: templates/wa-check-template.yml
+      parameters:
+        variantNumber: '1'
+        createEnvironmentVarName: 'createEnvironmentWAFound'
+        azureSubscription: 'radek-padrta-vs-msp'
+        webAppName: '$(AZURE_WEBAPP_NAME)'
+        resourceGroup: '$(AZURE_RESOURCE_GROUP)'
+
+    - template: templates/wa-check-template.yml
+      parameters:
+        variantNumber: '2'
+        createEnvironmentVarName: 'createEnvironmentWABFound'
+        azureSubscription: 'radek-padrta-vs-msp'
+        webAppName: '$(AZURE_WEBAPPB_NAME)'
+        resourceGroup: '$(AZURE_RESOURCE_GROUP)'
+
+
     - task: GitHubComment@0
       displayName: 'Comment GH - Starting Static Variant1'
       condition: and(eq(variables['createEnvironmentFound'], 'true'), eq(variables['CheckVariant1.VARIANT1_EXISTS'], 'false'))
