@@ -163,31 +163,48 @@ stages:
         azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APP_API_TOKEN)
         deployment_environment: '${{parameters.WebhookPRtest.pull_request.id}}v2'
 
-    - template: templates/get-url-template.yml
-      parameters:
-        variantNumber: '1'
+    - task: AzureCLI@2
+      name: GetVariant1URL
+      inputs:
         azureSubscription: 'radek-padrta-vs-msp'
-        staticWebAppName: '$(StaticEmptyWebApp)'
-    
-    - template: templates/get-url-template.yml
-      parameters:
-        variantNumber: '2'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          URL=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='variant1'].hostname")
+          echo "##vso[task.setvariable variable=VARIANT1_URL;isOutput=true]$URL"
+
+    - task: AzureCLI@2
+      name: GetVariant2URL
+      inputs:
         azureSubscription: 'radek-padrta-vs-msp'
-        staticWebAppName: '$(StaticEmptyWebApp)'
-    
-    # Final GitHub Comments
-    - template: templates/final-github-comment-template.yml
-      parameters:
-        variantNumber: '1'
-        createEnvironmentVarName: 'createEnvironmentFound'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          URL=$(az staticwebapp environment list -n $(StaticEmptyWebApp)  -o tsv --query "[?buildId=='variant2'].hostname")
+          echo "##vso[task.setvariable variable=VARIANT2_URL;isOutput=true]$URL"
+
+    - task: GitHubComment@0
+      displayName: 'Comment GH - Static Variant1 Deployed'
+      condition: eq(variables['createEnvironmentFound'], 'true')
+      inputs:
         gitHubConnection: 'github-nextjsdummytest'
-        prNumber: '${{ parameters.WebhookPRtest.number }}'
-        urlVarName: 'GetVariant1URL.VARIANT1_URL'
-    
-    - template: templates/final-github-comment-template.yml
-      parameters:
-        variantNumber: '2'
-        createEnvironmentVarName: 'createEnvironmentBFound'
+        repositoryName: '$(Build.Repository.Name)'
+        id: '${{parameters.WebhookPRtest.number}}'
+        comment: |
+          ✅ **Static Web App VARIANT1 is ready!**
+          You can access the application at $(GetVariant1URL.VARIANT1_URL)
+          You can access the application at https://$(GetVariant1URL.VARIANT1_URL)
+          Thank you for your patience!
+
+    - task: GitHubComment@0
+      displayName: 'Comment GH - Static Variant2 Deployed'
+      condition: eq(variables['createEnvironmentBFound'], 'true')
+      inputs:
         gitHubConnection: 'github-nextjsdummytest'
-        prNumber: '${{ parameters.WebhookPRtest.number }}'
-        urlVarName: 'GetVariant2URL.VARIANT2_URL'
+        repositoryName: '$(Build.Repository.Name)'
+        id: '${{parameters.WebhookPRtest.number}}'
+        comment: |
+          ✅ **Static Web App VARIANT2 is ready!**
+          You can access the application at $(GetVariant2URL.VARIANT2_URL)
+          You can access the application at https://$(GetVariant2URL.VARIANT2_URL)
+          Thank you for your patience!
