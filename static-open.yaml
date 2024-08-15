@@ -83,7 +83,7 @@ stages:
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          PR_VARIANT="${{parameters.WebhookPRtest.pull_request.id}}-variant1"
+          PR_VARIANT="${{parameters.WebhookPRtest.pull_request.id}}v1"
           EXISTS=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='$PR_VARIANT'].buildId" | grep -q "$PR_VARIANT" && echo "true" || echo "false")
           echo "##vso[task.setvariable variable=VARIANT1_EXISTS;isOutput=true]$EXISTS"
           if [ "$EXISTS" = "true" ]; then
@@ -99,7 +99,7 @@ stages:
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          PR_VARIANT2="${{parameters.WebhookPRtest.pull_request.id}}-variant2"
+          PR_VARIANT2="${{parameters.WebhookPRtest.pull_request.id}}v2"
           EXISTS=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='$PR_VARIANT2'].buildId" | grep -q "$PR_VARIANT2" && echo "true" || echo "false")
           echo "##vso[task.setvariable variable=VARIANT2_EXISTS;isOutput=true]$EXISTS"
           if [ "$EXISTS" = "true" ]; then
@@ -181,7 +181,7 @@ stages:
         api_location: ''
         output_location: '.next'
         azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APP_API_TOKEN)
-        deployment_environment: '${{parameters.WebhookPRtest.pull_request.id}}-variant1'
+        deployment_environment: '${{parameters.WebhookPRtest.pull_request.id}}v1'
 
     - task: AzureStaticWebApp@0
       name: "buildVariant2"
@@ -191,7 +191,7 @@ stages:
         api_location: ''
         output_location: '.next'
         azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APP_API_TOKEN)
-        deployment_environment: '${{parameters.WebhookPRtest.pull_request.id}}-variant2'
+        deployment_environment: '${{parameters.WebhookPRtest.pull_request.id}}v2'
 
     - task: AzureCLI@2
       name: GetVariant1URL
