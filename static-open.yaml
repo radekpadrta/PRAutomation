@@ -200,7 +200,7 @@ stages:
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          PR_VARIANT2="${{parameters.WebhookPRtest.pull_request.id}}v1"
+          PR_VARIANT="${{parameters.WebhookPRtest.pull_request.id}}v1"
           echo "PR_VARIANT: $PR_VARIANT"
           URL=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='$PR_VARIANT'].hostname")
           echo "URL: $URL"
@@ -230,7 +230,6 @@ stages:
         id: '${{parameters.WebhookPRtest.number}}'
         comment: |
           ✅ **Static Web App VARIANT1 is ready!**
-          You can access the application at $(GetVariant1URL.VARIANT1_URL)
           You can access the application at https://$(GetVariant1URL.VARIANT1_URL)
           Thank you for your patience!
 
