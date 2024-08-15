@@ -227,6 +227,7 @@ stages:
           You can access the application at $(GetVariant1URL.VARIANT1_URL)
           You can access the application at https://$(GetVariant1URL.VARIANT1_URL)
           Thank you for your patience!
+          
     - task: GitHubComment@0
       displayName: 'Comment GH - Static Variant2 Deployed'
       condition: eq(variables['createEnvironmentBFound'], 'true')
@@ -236,6 +237,6 @@ stages:
         id: '${{parameters.WebhookPRtest.number}}'
         comment: |
           ✅ **Static Web App VARIANT2 is ready!**
-          You can access the application at $(CheckVariant1.VARIANT1_URL)
-          You can access the application at https://$(CheckVariant2.VARIANT2_URL)
+          You can access the application at $(GetVariant2URL.VARIANT2_URL)
+          You can access the application at https://$(GetVariant2URL.VARIANT2_URL)
           Thank you for your patience!
