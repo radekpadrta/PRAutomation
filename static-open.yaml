@@ -200,8 +200,10 @@ stages:
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          URL=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='variant1'].hostname")
+          PR_VARIANT="${{parameters.WebhookPRtest.pull_request.id}}v1"
+          URL=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='PR_VARIANT'].hostname")
           echo "##vso[task.setvariable variable=VARIANT1_URL;isOutput=true]$URL"
+
     - task: AzureCLI@2
       name: GetVariant2URL
       inputs:
@@ -209,7 +211,8 @@ stages:
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          URL=$(az staticwebapp environment list -n $(StaticEmptyWebApp)  -o tsv --query "[?buildId=='variant2'].hostname")
+          PR_VARIANT2="${{parameters.WebhookPRtest.pull_request.id}}v2"
+          URL=$(az staticwebapp environment list -n $(StaticEmptyWebApp)  -o tsv --query "[?buildId=='PR_VARIANT2'].hostname")
           echo "##vso[task.setvariable variable=VARIANT2_URL;isOutput=true]$URL"
           
     - task: GitHubComment@0
