@@ -25,31 +25,56 @@ stages:
     pool:
       vmImage: 'ubuntu-latest'
     steps:
-    - template: templates/label-to-check.yaml
-      parameters:
-        labelToCheck: 'Create Static Variant1'
-        variableName: 'createEnvironmentFound'
-        prLabels: ${{ parameters.WebhookPRtest.pull_request.labels }}
-
-    - template: templates/label-to-check.yaml
-      parameters:
-        labelToCheck: 'Create Static Variant2'
-        variableName: 'createEnvironmentBFound'
-        prLabels: ${{ parameters.WebhookPRtest.pull_request.labels }}
-    
-    - template: templates/label-to-check.yaml
-      parameters:
-        labelToCheck: 'Create Static Variant1'
-        variableName: 'createEnvironmentWAFound'
-        prLabels: ${{ parameters.WebhookPRtest.pull_request.labels }}
-
-    - template: templates/label-to-check.yaml
-      parameters:
-        labelToCheck: 'Create Static Variant2'
-        variableName: 'createEnvironmentWABFound'
-        prLabels: ${{ parameters.WebhookPRtest.pull_request.labels }}
-
-
+    - task: Bash@3
+      displayName: 'Check for Create Static Variant1 label'
+      inputs:
+        targetType: 'inline'
+        script: |
+          create_env_found=false
+      
+          label0="${{parameters.WebhookPRtest.pull_request.labels[0].name}}"
+          label1="${{parameters.WebhookPRtest.pull_request.labels[1].name}}"
+          label2="${{parameters.WebhookPRtest.pull_request.labels[2].name}}"
+          label3="${{parameters.WebhookPRtest.pull_request.labels[3].name}}"
+          label4="${{parameters.WebhookPRtest.pull_request.labels[4].name}}"
+          label5="${{parameters.WebhookPRtest.pull_request.labels[5].name}}"
+          for label in "$label0" "$label1" "$label2" "$label3" "$label4" "$label5"; do
+            echo "Webhook1: Processing label: $label"
+            if [[ "$label" == "Create Static Variant1" ]]; then
+              create_env_found=true
+              break
+            fi
+          done
+          if $create_env_found; then
+            echo "##vso[task.setvariable variable=createEnvironmentFound]true"
+          else
+            echo "##vso[task.setvariable variable=createEnvironmentFound]false"
+          fi
+    - task: Bash@3
+      displayName: 'Check for Create Static Variant2 label'
+      inputs:
+        targetType: 'inline'
+        script: |
+          create_env_found=false
+      
+          label0="${{parameters.WebhookPRtest.pull_request.labels[0].name}}"
+          label1="${{parameters.WebhookPRtest.pull_request.labels[1].name}}"
+          label2="${{parameters.WebhookPRtest.pull_request.labels[2].name}}"
+          label3="${{parameters.WebhookPRtest.pull_request.labels[3].name}}"
+          label4="${{parameters.WebhookPRtest.pull_request.labels[4].name}}"
+          label5="${{parameters.WebhookPRtest.pull_request.labels[5].name}}"
+          for label in "$label0" "$label1" "$label2" "$label3" "$label4" "$label5"; do
+            echo "Webhook1: Processing label: $label"
+            if [[ "$label" == "Create Static Variant2" ]]; then
+              create_env_found=true
+              break
+            fi
+          done
+          if $create_env_found; then
+            echo "##vso[task.setvariable variable=createEnvironmentBFound]true"
+          else
+            echo "##vso[task.setvariable variable=createEnvironmentBFound]false"
+          fi
     - task: AzureCLI@2
       name: CheckVariant1
       condition: eq(variables['createEnvironmentFound'], 'true')
@@ -58,7 +83,7 @@ stages:
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          PR_VARIANT="${{parameters.WebhookPRtest.pull_request.id}}v1"
+          PR_VARIANT="${{parameters.WebhookPRtest.pull_request.id}}-variant1"
           EXISTS=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='$PR_VARIANT'].buildId" | grep -q "$PR_VARIANT" && echo "true" || echo "false")
           echo "##vso[task.setvariable variable=VARIANT1_EXISTS;isOutput=true]$EXISTS"
           if [ "$EXISTS" = "true" ]; then
@@ -74,14 +99,13 @@ stages:
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          PR_VARIANT2="${{parameters.WebhookPRtest.pull_request.id}}v2"
+          PR_VARIANT2="${{parameters.WebhookPRtest.pull_request.id}}-variant2"
           EXISTS=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='$PR_VARIANT2'].buildId" | grep -q "$PR_VARIANT2" && echo "true" || echo "false")
           echo "##vso[task.setvariable variable=VARIANT2_EXISTS;isOutput=true]$EXISTS"
           if [ "$EXISTS" = "true" ]; then
             URL=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='$PR_VARIANT2'].hostname")
             echo "##vso[task.setvariable variable=VARIANT2_URL;isOutput=true]$URL"
           fi
-
     - task: Bash@3
       name: DisplayResults
       inputs:
@@ -147,7 +171,6 @@ stages:
           # Print the web app name and a masked version of the token for debugging
           echo "Created empty Static Web App: $(StaticEmptyWebApp)"
           echo "API token (masked): ${token:0:5}...${token: -5}"
-
     - checkout: self
       submodules: true
     - task: AzureStaticWebApp@0
@@ -158,7 +181,7 @@ stages:
         api_location: ''
         output_location: '.next'
         azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APP_API_TOKEN)
-        deployment_environment: '${{parameters.WebhookPRtest.pull_request.id}}v1'
+        deployment_environment: '${{parameters.WebhookPRtest.pull_request.id}}-variant1'
 
     - task: AzureStaticWebApp@0
       name: "buildVariant2"
@@ -168,7 +191,7 @@ stages:
         api_location: ''
         output_location: '.next'
         azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APP_API_TOKEN)
-        deployment_environment: '${{parameters.WebhookPRtest.pull_request.id}}v2'
+        deployment_environment: '${{parameters.WebhookPRtest.pull_request.id}}-variant2'
 
     - task: AzureCLI@2
       name: GetVariant1URL
@@ -179,7 +202,6 @@ stages:
         inlineScript: |
           URL=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='variant1'].hostname")
           echo "##vso[task.setvariable variable=VARIANT1_URL;isOutput=true]$URL"
-
     - task: AzureCLI@2
       name: GetVariant2URL
       inputs:
@@ -189,7 +211,7 @@ stages:
         inlineScript: |
           URL=$(az staticwebapp environment list -n $(StaticEmptyWebApp)  -o tsv --query "[?buildId=='variant2'].hostname")
           echo "##vso[task.setvariable variable=VARIANT2_URL;isOutput=true]$URL"
-
+          
     - task: GitHubComment@0
       displayName: 'Comment GH - Static Variant1 Deployed'
       condition: eq(variables['createEnvironmentFound'], 'true')
@@ -202,7 +224,6 @@ stages:
           You can access the application at $(GetVariant1URL.VARIANT1_URL)
           You can access the application at https://$(GetVariant1URL.VARIANT1_URL)
           Thank you for your patience!
-
     - task: GitHubComment@0
       displayName: 'Comment GH - Static Variant2 Deployed'
       condition: eq(variables['createEnvironmentBFound'], 'true')
