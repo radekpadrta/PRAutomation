@@ -9,15 +9,37 @@ on:
     branches:
       - main
 
-permissions:
-  contents: read
-  pull-requests: write
-
 jobs:
+  determine_variants:
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    outputs:
+      variants: ${{ steps.set-variants.outputs.variants }}
+    steps:
+      - name: Determine variants to deploy
+        id: set-variants
+        run: |
+          LABELS=$(jq -r '.pull_request.labels[].name' "$GITHUB_EVENT_PATH")
+          VARIANTS=()
+          if echo "$LABELS" | grep -q "variant1"; then
+            VARIANTS+=("v1")
+          fi
+          if echo "$LABELS" | grep -q "variant2"; then
+            VARIANTS+=("v2")
+          fi
+          if [ ${#VARIANTS[@]} -eq 0 ]; then
+            VARIANTS+=("v1")  # Default to v1 if no labels
+          fi
+          echo "variants=$(IFS=,; echo "${VARIANTS[*]}")" >> $GITHUB_OUTPUT
+
   build_and_deploy_job:
+    needs: determine_variants
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
+    strategy:
+      matrix:
+        variant: ${{ fromJson(format('[{0}]', needs.determine_variants.outputs.variants)) }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -25,17 +47,12 @@ jobs:
           lfs: false
 
       - name: Determine app location
-        id: app_location
+        id: app_config
         run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            LABELS=$(jq -r '.pull_request.labels[].name' "$GITHUB_EVENT_PATH")
-            if echo "$LABELS" | grep -q "variant2"; then
-              echo "APP_LOCATION=/variant2" >> $GITHUB_OUTPUT
-            else
-              echo "APP_LOCATION=/" >> $GITHUB_OUTPUT
-            fi
-          else
+          if [ "${{ matrix.variant }}" == "v1" ]; then
             echo "APP_LOCATION=/" >> $GITHUB_OUTPUT
+          else
+            echo "APP_LOCATION=/variant2" >> $GITHUB_OUTPUT
           fi
 
       - name: Build And Deploy
@@ -45,9 +62,10 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BLACK_HILL_01E38BE0F }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: ${{ steps.app_location.outputs.APP_LOCATION }}
+          app_location: ${{ steps.app_config.outputs.APP_LOCATION }}
           api_location: ""
           output_location: ".next"
+          deployment_environment: ${{ matrix.variant }}
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
