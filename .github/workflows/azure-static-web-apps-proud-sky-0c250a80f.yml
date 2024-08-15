@@ -11,7 +11,6 @@ on:
 
 jobs:
   build_and_deploy_job:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     steps:
@@ -19,6 +18,7 @@ jobs:
         with:
           submodules: true
           lfs: false
+      
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
@@ -29,21 +29,31 @@ jobs:
           app_location: "/"
           api_location: ""
           output_location: ".next"
+      
+      - name: Debug Info
+        run: |
+          echo "Event name: ${{ github.event_name }}"
+          echo "Event action: ${{ github.event.action }}"
+          echo "Is PR? ${{ github.event_name == 'pull_request' }}"
+      
       - name: Show Preview URL
         if: github.event_name == 'pull_request'
         run: |
-          echo "Preview URL: ${{ steps.builddeploy.outputs.preview_url }}"
+          echo "Preview URL from output: ${{ steps.builddeploy.outputs.preview_url }}"
+          echo "Static Web App URL: ${{ steps.builddeploy.outputs.static_web_app_url }}"
+      
       - name: Comment PR
-        uses: actions/github-script@v6
         if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
+            const previewUrl = '${{ steps.builddeploy.outputs.preview_url }}' || '${{ steps.builddeploy.outputs.static_web_app_url }}';
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.name,
-              body: `📢 Preview this PR: ${{ steps.builddeploy.outputs.preview_url }}`
+              body: `📢 Preview this PR: ${previewUrl}`
             })
 
   close_pull_request_job:
