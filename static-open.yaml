@@ -200,9 +200,12 @@ stages:
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          PR_VARIANT="${{parameters.WebhookPRtest.pull_request.id}}v1"
-          URL=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='PR_VARIANT'].hostname")
+          PR_VARIANT2="${{parameters.WebhookPRtest.pull_request.id}}v1"
+          echo "PR_VARIANT: $PR_VARIANT"
+          URL=$(az staticwebapp environment list -n $(StaticEmptyWebApp) -o tsv --query "[?buildId=='$PR_VARIANT'].hostname")
+          echo "URL: $URL"
           echo "##vso[task.setvariable variable=VARIANT1_URL;isOutput=true]$URL"
+          echo "VARIANT1_URL set to: $URL"
 
     - task: AzureCLI@2
       name: GetVariant2URL
@@ -240,9 +243,5 @@ stages:
         id: '${{parameters.WebhookPRtest.number}}'
         comment: |
           ✅ **Static Web App VARIANT2 is ready!**
-          Debug info:
-          - VARIANT2_URL: $(GetVariant2URL.VARIANT2_URL)
-          - createEnvironmentBFound: $(createEnvironmentBFound)
-          You can access the application at $(GetVariant2URL.VARIANT2_URL)
           You can access the application at https://$(GetVariant2URL.VARIANT2_URL)
           Thank you for your patience!
