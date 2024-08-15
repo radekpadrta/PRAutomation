@@ -30,7 +30,8 @@ jobs:
           if [ ${#VARIANTS[@]} -eq 0 ]; then
             VARIANTS+=("v1")  # Default to v1 if no labels
           fi
-          echo "variants=${VARIANTS[*]}" >> $GITHUB_OUTPUT
+          JSON_VARIANTS=$(printf '%s\n' "${VARIANTS[@]}" | jq -R . | jq -sc .)
+          echo "variants=$JSON_VARIANTS" >> $GITHUB_OUTPUT
 
   build_and_deploy_job:
     needs: determine_variants
@@ -39,7 +40,7 @@ jobs:
     name: Build and Deploy Job
     strategy:
       matrix:
-        variant: ${{ split(needs.determine_variants.outputs.variants, ' ') }}
+        variant: ${{fromJson(needs.determine_variants.outputs.variants)}}
     steps:
       - uses: actions/checkout@v3
         with:
