@@ -67,11 +67,13 @@ It’s not that flexible. You need to use a token if you want to use preview env
 
 ## Static Web App - GitHub Actions
 
-You need to set up the connection between the Static Web App and GitHub. You can follow this guide to do that: https://github.com/radekpadrta/PRAutomation/tree/testPR
+You need to set up the connection between the Static Web App and GitHub. You can follow this guide to do that: [How to conenct SWA with GitHub](https://github.com/radekpadrta/PRAutomation/tree/testPR)
 
 Once you set the connection, a pipeline for GitHub Actions will be automatically created in your repository.
 
 This automatically created pipeline is not ideal for our use case, but if we make it prettier, it can be very useful!
+
+The udpated pipeline can be found [here](https://github.com/radekpadrta/PRAutomation/blob/main/.github/workflows/azure-static-web-apps-black-hill-01e38be0f.yml)
 
 We don’t need to worry about webhooks or payloads, and we don’t use any conditions. Everything is handled in a different way, which we don't see.
 
