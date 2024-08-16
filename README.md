@@ -33,13 +33,14 @@ Let's discuss each, how it works at a high level, and the pros and cons.
 We opened the PR. We didn't select a label. Should the pipeline be triggered? No.
 Why is it not triggered? Because we are using a webhook, and we defined what will trigger it. In our case, it is when a label is added.
 
-![[Pasted image 20240816091244.png]]
+![](https://github.com/radekpadrta/PRAutomation/blob/main/Pasted%20image%2020240816091244.png)
 
 You might be wondering, what if we select a different label?
 For this, we have a pipeline with many conditions that check what is needed and what is already set.
 
 Here is a visualization of the flow.
-![[Pasted image 20240816091442.png]]
+![](https://github.com/radekpadrta/PRAutomation/blob/main/Pasted%20image%2020240816091442.png)
+
 
 I will not dive into the solution, or I would be writing about it for hours. The solution is in `azure-pipelines-pr-open.yml`. You can check it there and you will find other pipeline there.
 
@@ -54,7 +55,7 @@ You need to pay for the service plan, create additional components, and the pipe
 The trigger is the same as above. We are using a Static Web App, which means we don’t need as much in the pipeline as for a Web App. All we need is the Static Web App.
 
 
-![[Pasted image 20240816093902.png]]
+![](https://github.com/radekpadrta/PRAutomation/blob/main/Pasted%20image%2020240816093902.png)
 
 ##### What is cool?
 You can create preview environments and configure them as needed. For example, you can create two or three apps in one PR by selecting two or three labels, and it is cheaper than using a Web App.
