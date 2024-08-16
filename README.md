@@ -88,7 +88,7 @@ We don’t work with the payload, making it difficult to create flexible tasks. 
 
 ## Conclusion
 
-If you have the time, want to ensure everything is set up according to your needs, and are dealing with large applications, go for the Web App with Azure DevOps.
+If you have the time, want to be sure everything is set up according to your needs, and are dealing with large applications, go for the Web App with Azure DevOps.
 
 If you have some time, and already Azure set for your Web App environments, and want to test the solution and discard it without incurring high costs, choose the Static Web App with Azure DevOps.
 
