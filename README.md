@@ -93,3 +93,5 @@ If you have the time, want to be sure everything is set up according to your nee
 If you have some time, and already Azure set for your Web App environments, and want to test the solution and discard it without incurring high costs, choose the Static Web App with Azure DevOps.
 
 If you want an easy solution, don’t want to spend much time on it, and don’t need a highly flexible setup, go with the Static Web App using GitHub Actions.
+
+-
