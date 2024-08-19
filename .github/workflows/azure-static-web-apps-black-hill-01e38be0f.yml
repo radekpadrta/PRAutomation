@@ -34,6 +34,26 @@ jobs:
           echo "Updated root package.json:"
           cat package.json
 
+      - name: Update root turbo.json
+        run: |
+          echo '{
+            "$schema": "https://turbo.build/schema.json",
+            "globalDependencies": ["**/.env.*local"],
+            "tasks": {
+              "build": {
+                "outputs": [".next/**", "!.next/cache/**"],
+                "dependsOn": ["^build"]
+              },
+              "lint": {},
+              "dev": {
+                "cache": false,
+                "persistent": true
+              }
+            }
+          }' > turbo.json
+          echo "Updated root turbo.json:"
+          cat turbo.json
+
       - name: Update variant1 turbo.json
         run: |
           echo '{
