@@ -1,5 +1,5 @@
 {
-  "name": "variant1",  // or "variant2" for the other directory
+  "name": "variant1",
   "version": "1.0.0",
   "scripts": {
     "dev": "next dev",
