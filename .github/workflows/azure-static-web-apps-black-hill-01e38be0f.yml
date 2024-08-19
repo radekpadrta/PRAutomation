@@ -28,52 +28,34 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Update package.json and regenerate package-lock.json
+      - name: Update root package.json
         run: |
-          # Update package.json
           jq '.workspaces = ["variant1", "variant2"] | .packageManager = "npm@'"$(npm -v)"'" | .devDependencies.turbo = "latest"' package.json > temp.json && mv temp.json package.json
-          
-          # Remove existing package-lock.json
-          rm -f package-lock.json
-          
-          # Install dependencies and generate new package-lock.json
-          npm install
-          
-          # Display updated package.json for debugging
+          echo "Updated root package.json:"
           cat package.json
 
-      - name: Configure Turbo
+      - name: Update variant1 turbo.json
         run: |
-          # Create turbo.json with correct structure for Turbo 2.0
           echo '{
             "$schema": "https://turbo.build/schema.json",
-            "globalDependencies": ["**/.env.*local"],
             "tasks": {
               "build": {
-                "outputs": [".next/**", "!.next/cache/**"],
-                "dependsOn": ["^build"]
+                "outputs": [".next/**", "!.next/cache/**"]
               },
-              "lint": {},
               "dev": {
                 "cache": false,
                 "persistent": true
               }
             }
-          }' > turbo.json
+          }' > variant1/turbo.json
+          echo "Updated variant1/turbo.json:"
+          cat variant1/turbo.json
 
-      - name: Determine app to build
-        id: determine_app
-        run: |
-          if npx turbo run build --filter=variant2...[origin/main]; then
-            echo "APP_LOCATION=variant2" >> $GITHUB_OUTPUT
-          elif npx turbo run build --filter=variant1...[origin/main]; then
-            echo "APP_LOCATION=variant1" >> $GITHUB_OUTPUT
-          else
-            echo "APP_LOCATION=variant1" >> $GITHUB_OUTPUT
-          fi
+      - name: Install dependencies
+        run: npm install
 
       - name: Build app
-        run: npx turbo run build --filter=${{ steps.determine_app.outputs.APP_LOCATION }}
+        run: npx turbo run build --filter=variant1
 
       - name: Deploy
         id: builddeploy
@@ -82,7 +64,7 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BLACK_HILL_01E38BE0F }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "${{ steps.determine_app.outputs.APP_LOCATION }}"
+          app_location: "variant1"
           api_location: ""
           output_location: ".next"
 
