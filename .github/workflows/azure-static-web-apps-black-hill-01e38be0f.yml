@@ -31,19 +31,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Turbo
+        run: npm install turbo --save-dev
+
       - name: Determine app to build
         id: determine_app
         run: |
-          if turbo run build --filter=variant2...[origin/main]; then
+          if npx turbo run build --filter=variant2...[origin/main]; then
             echo "APP_LOCATION=variant2" >> $GITHUB_OUTPUT
-          elif turbo run build --filter=variant1...[origin/main]; then
+          elif npx turbo run build --filter=variant1...[origin/main]; then
             echo "APP_LOCATION=variant1" >> $GITHUB_OUTPUT
           else
             echo "APP_LOCATION=variant1" >> $GITHUB_OUTPUT
           fi
 
       - name: Build app
-        run: turbo run build --filter=${{ steps.determine_app.outputs.APP_LOCATION }}
+        run: npx turbo run build --filter=${{ steps.determine_app.outputs.APP_LOCATION }}
 
       - name: Deploy
         id: builddeploy
