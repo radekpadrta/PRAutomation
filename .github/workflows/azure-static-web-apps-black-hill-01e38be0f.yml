@@ -28,27 +28,38 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Remove existing package-lock.json
-        run: rm -f package-lock.json
-
-      - name: Install dependencies and generate new package-lock.json
-        run: npm install
-
-      - name: Install Turbo
-        run: npm install turbo --save-dev
+      - name: Update package.json and regenerate package-lock.json
+        run: |
+          # Update package.json
+          jq '.workspaces = ["variant1", "variant2"] | .packageManager = "npm@'"$(npm -v)"'" | .devDependencies.turbo = "latest"' package.json > temp.json && mv temp.json package.json
+          
+          # Remove existing package-lock.json
+          rm -f package-lock.json
+          
+          # Install dependencies and generate new package-lock.json
+          npm install
+          
+          # Display updated package.json for debugging
+          cat package.json
 
       - name: Configure Turbo
         run: |
-          if [ ! -f "turbo.json" ]; then
-            echo '{
-              "$schema": "https://turbo.build/schema.json",
-              "pipeline": {
-                "build": {
-                  "outputs": [".next/**"]
-                }
+          # Create turbo.json with correct structure for Turbo 2.0
+          echo '{
+            "$schema": "https://turbo.build/schema.json",
+            "globalDependencies": ["**/.env.*local"],
+            "tasks": {
+              "build": {
+                "outputs": [".next/**", "!.next/cache/**"],
+                "dependsOn": ["^build"]
+              },
+              "lint": {},
+              "dev": {
+                "cache": false,
+                "persistent": true
               }
-            }' > turbo.json
-          fi
+            }
+          }' > turbo.json
 
       - name: Determine app to build
         id: determine_app
