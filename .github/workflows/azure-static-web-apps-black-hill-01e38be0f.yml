@@ -1,5 +1,4 @@
-name: Azure Static Web Apps CI/CD with Turbo
-
+name: Azure Static Web Apps CI/CD
 on:
   push:
     branches:
@@ -8,11 +7,9 @@ on:
     types: [opened, synchronize, reopened, closed]
     branches:
       - main
-
 permissions:
   contents: read
   pull-requests: write
-
 jobs:
   build_and_deploy_job:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
@@ -21,72 +18,33 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Update root package.json
+          submodules: true
+          lfs: false
+      - name: Determine app location
+        id: app_location
         run: |
-          jq '.workspaces = ["variant1", "variant2"] | .packageManager = "npm@'"$(npm -v)"'" | .devDependencies.turbo = "latest"' package.json > temp.json && mv temp.json package.json
-          echo "Updated root package.json:"
-          cat package.json
-
-      - name: Update root turbo.json
-        run: |
-          echo '{
-            "$schema": "https://turbo.build/schema.json",
-            "tasks": {
-              "build": {
-                "dependsOn": ["^build"],
-                "outputs": [".next/**", "!.next/cache/**"]
-              },
-              "check-types": {
-                "dependsOn": ["^check-types"]
-              },
-              "dev": {
-                "persistent": true,
-                "cache": false
-              }
-            }
-          }' > turbo.json
-          echo "Updated root turbo.json:"
-          cat turbo.json
-
-      - name: Create variant1 turbo.json
-        run: |
-          mkdir -p variant1
-          echo '{
-            "$schema": "https://turbo.build/schema.json",
-            "extends": ["//"],
-            "tasks": {
-              "build": {
-                "outputs": [".next/**", "!.next/cache/**"]
-              }
-            }
-          }' > variant1/turbo.json
-          echo "Created variant1/turbo.json:"
-          cat variant1/turbo.json
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build app
-        run: npx turbo run build --filter=variant1
-
-      - name: Deploy
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            LABELS=$(jq -r '.pull_request.labels[].name' "$GITHUB_EVENT_PATH")
+            if echo "$LABELS" | grep -q "variant2"; then
+              echo "APP_LOCATION=/variant2" >> $GITHUB_OUTPUT
+            elif echo "$LABELS" | grep -q "variant1"; then
+              echo "APP_LOCATION=/variant1" >> $GITHUB_OUTPUT
+            else
+              echo "APP_LOCATION=/variant1" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "APP_LOCATION=/variant1" >> $GITHUB_OUTPUT
+          fi
+      - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BLACK_HILL_01E38BE0F }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "variant1"
+          app_location: ${{ steps.app_location.outputs.APP_LOCATION }}
           api_location: ""
           output_location: ".next"
-
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
