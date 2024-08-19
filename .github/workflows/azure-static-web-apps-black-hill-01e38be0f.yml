@@ -28,11 +28,29 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install dependencies and update lock file
+        run: npm install
 
-      - name: Install Turbo
-        run: npm install turbo --save-dev
+      - name: Configure Turbo
+        run: |
+          # Create turbo.json if it doesn't exist
+          if [ ! -f "turbo.json" ]; then
+            echo '{
+              "$schema": "https://turbo.build/schema.json",
+              "pipeline": {
+                "build": {
+                  "outputs": [".next/**"]
+                }
+              }
+            }' > turbo.json
+          fi
+          
+          # Add packageManager field to package.json
+          npm_version=$(npm -v)
+          jq '.packageManager = "npm@'"$npm_version"'"' package.json > temp.json && mv temp.json package.json
+          
+          # Display updated package.json for debugging
+          cat package.json
 
       - name: Determine app to build
         id: determine_app
