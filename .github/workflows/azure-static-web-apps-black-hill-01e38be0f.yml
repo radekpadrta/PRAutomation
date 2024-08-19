@@ -55,6 +55,21 @@ jobs:
           echo "Updated root turbo.json:"
           cat turbo.json
 
+      - name: Create variant1 turbo.json
+        run: |
+          mkdir -p variant1
+          echo '{
+            "$schema": "https://turbo.build/schema.json",
+            "extends": ["//"],
+            "tasks": {
+              "build": {
+                "outputs": [".next/**", "!.next/cache/**"]
+              }
+            }
+          }' > variant1/turbo.json
+          echo "Created variant1/turbo.json:"
+          cat variant1/turbo.json
+
       - name: Install dependencies
         run: npm install
 
