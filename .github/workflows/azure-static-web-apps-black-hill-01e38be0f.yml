@@ -38,38 +38,22 @@ jobs:
         run: |
           echo '{
             "$schema": "https://turbo.build/schema.json",
-            "globalDependencies": ["**/.env.*local"],
             "tasks": {
               "build": {
-                "outputs": [".next/**", "!.next/cache/**"],
-                "dependsOn": ["^build"]
+                "dependsOn": ["^build"],
+                "outputs": [".next/**", "!.next/cache/**"]
               },
-              "lint": {},
+              "check-types": {
+                "dependsOn": ["^check-types"]
+              },
               "dev": {
-                "cache": false,
-                "persistent": true
+                "persistent": true,
+                "cache": false
               }
             }
           }' > turbo.json
           echo "Updated root turbo.json:"
           cat turbo.json
-
-      - name: Update variant1 turbo.json
-        run: |
-          echo '{
-            "$schema": "https://turbo.build/schema.json",
-            "tasks": {
-              "build": {
-                "outputs": [".next/**", "!.next/cache/**"]
-              },
-              "dev": {
-                "cache": false,
-                "persistent": true
-              }
-            }
-          }' > variant1/turbo.json
-          echo "Updated variant1/turbo.json:"
-          cat variant1/turbo.json
 
       - name: Install dependencies
         run: npm install
