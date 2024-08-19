@@ -33,7 +33,7 @@ Let's discuss each, how it works at a high level, and the pros and cons.
 We opened the PR. We didn't select a label. Should the pipeline be triggered? No.
 Why is it not triggered? Because we are using a webhook, and we defined what will trigger it. In our case, it is when a label is added.
 
-![](https://github.com/radekpadrta/PRAutomation/blob/main/Pasted%20image%2020240816091244.png)
+![](https://github.com/radekpadrta/PRAutomation/blob/main/Pasted%20image%2020240816091244.png).
 
 You might be wondering, what if we select a different label?
 For this, we have a pipeline with many conditions that check what is needed and what is already set.
