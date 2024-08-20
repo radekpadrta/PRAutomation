@@ -28,7 +28,13 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm install
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git add package-lock.json
+          git commit -m "Update package-lock.json" || echo "No changes to commit"
+          git push origin HEAD:${{ github.head_ref }}
 
       - name: Build affected apps
         run: npx turbo run build --filter=[HEAD^1]

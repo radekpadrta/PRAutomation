@@ -1,14 +1,11 @@
 # Dependencies
-/node_modules
+node_modules
 /.pnp
 .pnp.js
 
-# Testing
-/coverage
-
 # Next.js
-/.next/
-/out/
+.next/
+out/
 
 # Production
 /build
