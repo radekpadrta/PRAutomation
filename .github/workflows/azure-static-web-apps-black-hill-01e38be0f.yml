@@ -60,7 +60,7 @@ jobs:
           app_location: "variant2"
           output_location: ".next"
           app_build_command: "npm run build"
-          deployment_environment: "variant2"
+          deployment_environment: variant2
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
