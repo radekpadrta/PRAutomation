@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 2
-          deployment_environment: "variant1"
+          submodules: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -43,6 +43,7 @@ jobs:
         if: hashFiles('variant1/.next/**') != ''
         uses: Azure/static-web-apps-deploy@v1
         with:
+          deployment_environment: "variant1"
           azure_static_web_apps_api_token: ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
