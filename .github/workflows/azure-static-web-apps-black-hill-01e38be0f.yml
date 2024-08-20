@@ -10,8 +10,7 @@ on:
       - main
 
 env:
-  AZURE_STATIC_WEB_APPS_API_TOKEN_VARIANT1: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BLACK_HILL_01E38BE0F }}
-  AZURE_STATIC_WEB_APPS_API_TOKEN_VARIANT2: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_VARIANT2 }}
+  AZURE_STATIC_WEB_APPS_API_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BLACK_HILL_01E38BE0F }}
 
 permissions:
   contents: read
@@ -43,41 +42,32 @@ jobs:
         if: hashFiles('variant1/.next/**') != ''
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN_VARIANT1 }}
+          azure_static_web_apps_api_token: ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "variant1"
           output_location: ".next"
           app_build_command: "npm run build"
-          deployment_environment: variant1
+          deployment_environment: "release"
 
       - name: Deploy variant2
         if: hashFiles('variant2/.next/**') != ''
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN_VARIANT2 }}
+          azure_static_web_apps_api_token: ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "variant2"
           output_location: ".next"
           app_build_command: "npm run build"
-          deployment_environment: variant2
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
     name: Close Pull Request Job
     steps:
-      - name: Close Pull Request for variant1
+      - name: Close Pull Request
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN_VARIANT1 }}
+          azure_static_web_apps_api_token: ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           action: "close"
-          deployment_environment: variant1
-
-      - name: Close Pull Request for variant2
-        uses: Azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN_VARIANT2 }}
-          action: "close"
-          deployment_environment: variant2
