@@ -39,17 +39,23 @@ jobs:
       - name: Build affected apps
         run: npx turbo run build --filter=[HEAD^1]
 
+      - name: Generate unique names
+        id: names
+        run: |
+          echo "variant1_name=variant1-pr-${{ github.event.number }}-${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "variant2_name=variant2-pr-${{ github.event.number }}-${{ github.sha }}" >> $GITHUB_OUTPUT
+
       - name: Deploy variant1
         if: hashFiles('variant1/.next/**') != ''
         uses: Azure/static-web-apps-deploy@v1
         with:
-          deployment_environment: "variant1"
           azure_static_web_apps_api_token: ${{ env.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "variant1"
           output_location: ".next"
           app_build_command: "npm run build"
+          deployment_environment: ${{ steps.names.outputs.variant1_name }}
 
       - name: Deploy variant2
         if: hashFiles('variant2/.next/**') != ''
@@ -61,6 +67,34 @@ jobs:
           app_location: "variant2"
           output_location: ".next"
           app_build_command: "npm run build"
+          deployment_environment: ${{ steps.names.outputs.variant2_name }}
+
+      - name: Comment PR
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const variant1Deployed = '${{ hashFiles('variant1/.next/**') }}' !== '';
+            const variant2Deployed = '${{ hashFiles('variant2/.next/**') }}' !== '';
+            
+            let comment = '## Preview Environments\n\n';
+            if (variant1Deployed) {
+              comment += `- Variant 1: https://${{ steps.names.outputs.variant1_name }}.azurestaticapps.net\n`;
+            }
+            if (variant2Deployed) {
+              comment += `- Variant 2: https://${{ steps.names.outputs.variant2_name }}.azurestaticapps.net\n`;
+            }
+            if (!variant1Deployed && !variant2Deployed) {
+              comment += 'No changes detected in either variant. No new preview environments were created.\n';
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            })
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
