@@ -48,7 +48,7 @@ jobs:
           app_location: "variant1"
           output_location: ".next"
           app_build_command: "npm run build"
-          deployment_environment: "release"
+          deployment_environment: variant1
 
       - name: Deploy variant2
         if: hashFiles('variant2/.next/**') != ''
@@ -60,7 +60,7 @@ jobs:
           app_location: "variant2"
           output_location: ".next"
           app_build_command: "npm run build"
-          deployment_environment: releasee
+          deployment_environment: variant2
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
