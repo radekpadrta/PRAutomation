@@ -1,27 +1,25 @@
-
 {
   "name": "nextjs-dummy-app",
   "version": "1.0.0",
   "description": "A dummy Next.js application for demonstration",
+  "private": true,
+  "workspaces": [
+    "variant1",
+    "variant2"
+  ],
   "scripts": {
-      "dev": "next dev",
-      "build": "next build",
-      "start": "next start"
-    },
-    "dependencies": {
-      "next": "latest",
-      "react": "latest",
-      "react-dom": "latest"
-    },
-    "engines": {
-      "node": ">=18.0.0"
-    },
-  "devDependencies": {
-      "@types/node": "22.0.0",
-      "@types/react": "^17.0.0",
-      "typescript": "^4.5.4"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "start": "turbo run start",
+    "lint": "turbo run lint"
   },
-  "main": "next.config.js",
+  "devDependencies": {
+    "turbo": "latest"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "packageManager": "npm@8.19.2",
   "keywords": [],
   "author": "",
   "license": "ISC"
