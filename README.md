@@ -85,6 +85,8 @@ If the code is in GitHub, it’s easy to set up Actions, understand, and maintai
 ##### What is bad?
 We don’t work with the payload, making it difficult to create flexible tasks. Additionally, we don’t see what is happening in GitHub Actions, for example when it sends information to users.
 
+![image](https://github.com/user-attachments/assets/4ede8fb3-3866-4a6b-9f42-b024a0d68ed3)
+
 
 ## Conclusion
 
